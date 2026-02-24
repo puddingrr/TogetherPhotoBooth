@@ -14,6 +14,7 @@ struct PhotoView: View {
     
     let photos: [UIImage]
     let frameName: String
+    let slotCount: Int
     let onFinish: () -> Void
     
     @State private var stickers: [UIImage] = []
@@ -31,34 +32,75 @@ struct PhotoView: View {
         VStack {
             VStack {
                 ZStack {
-                    if let firstPhoto = photos.first {
-                        Image(uiImage: firstPhoto)
-                            .resizable()
-                            .scaledToFill()
-                            .aspectRatio(
-                                UIImage(named: frameName)!.size,
-                                contentMode: .fit
-                            )
-                            .cornerRadius(10)
-                            .clipped()
-                            .padding(10)
+                    Group {
+                        switch slotCount {
+                            
+                        case 1:
+                            if let photo = photos.first {
+                                Image(uiImage: photo)
+                                    .resizable()
+                                    .scaledToFill()
+                            }
+                            
+                        case 2, 3:
+                            VStack(spacing: 10) {
+                                ForEach(Array(photos.enumerated()), id: \.offset) { _, photo in
+                                    Image(uiImage: photo)
+                                        .resizable()
+                                        .scaledToFill()
+                                }
+                            }
+                            
+                        case 4:
+                            VStack(spacing: 10) {
+                                ForEach(0..<2, id: \.self) { row in
+                                    HStack(spacing: 10) {
+                                        ForEach(0..<2, id: \.self) { col in
+                                            let index = row * 2 + col
+                                            if index < photos.count {
+                                                Image(uiImage: photos[index])
+                                                    .resizable()
+                                                    .scaledToFill()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                        case 6:
+                            VStack(spacing: 10) {
+                                ForEach(0..<3, id: \.self) { row in
+                                    HStack(spacing: 10) {
+                                        ForEach(0..<2, id: \.self) { col in
+                                            let index = row * 2 + col
+                                            if index < photos.count {
+                                                Image(uiImage: photos[index])
+                                                    .resizable()
+                                                    .scaledToFill()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                        default:
+                            EmptyView()
+                        }
                     }
-                    
-                    Image(frameName)
-                        .resizable()
-                        .offset()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .cornerRadius(10)
-                        .clipped()
+                    .padding(10)
+//                    Image(frameName)
+//                        .resizable()
+//                        .offset()
+//                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+//                        .cornerRadius(10)
+//                        .clipped()
                     
                     ForEach(stickers, id: \.self) { sticker in
-                        StickerView(image: sticker) // your draggable StickerView
+                        StickerView(image: sticker)
                     }
                     
-                    // Text overlay
                     if showTextEditor {
                         TextField("Enter text", text: $newText, onCommit: {
-                            // Add text as sticker image or just keep as overlay
                             stickers.append(textToImage(newText))
                             newText = ""
                             showTextEditor = false
@@ -113,7 +155,7 @@ struct PhotoView: View {
         .padding(16)
         .alert("Saved!", isPresented: $showSavedAlert) {
             Button("OK") {
-                dismiss() // go back to BoothView
+                dismiss()
                 onFinish()
             }
         } message: {

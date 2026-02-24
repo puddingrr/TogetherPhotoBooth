@@ -12,7 +12,7 @@ struct BoothView: View {
     
     @StateObject private var camera = CameraManager()
     
-    @State private var capturedImages: [UIImage?] = [nil, nil, nil]
+    @State private var capturedImages: [UIImage?] = []
     @State private var currentSlotIndex = 0
     @State private var goToEditor = false
     
@@ -31,17 +31,56 @@ struct BoothView: View {
         VStack {
             VStack {
                 ZStack(alignment: .bottom) {
-                    CameraPreview(manager: camera)
-                        .cornerRadius(10)
-                        .clipped()
-                        .padding(10)
                     
-                    Image(selectedFrameModel.name)
-                        .resizable()
-                        .offset()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .cornerRadius(10)
-                        .clipped()
+                    Group {
+                        switch selectedFrameModel.slots {
+                            
+                        case 1:
+                            CameraPreview(manager: camera)
+                            
+                        case 2, 3:
+                            VStack(spacing: 10) {
+                                ForEach(0..<selectedFrameModel.slots, id: \.self) { _ in
+                                    CameraPreview(manager: camera)
+                                }
+                            }
+                            
+                        case 4:
+                            VStack(spacing: 10) {
+                                ForEach(0..<2, id: \.self) { _ in
+                                    HStack(spacing: 10) {
+                                        ForEach(0..<2, id: \.self) { _ in
+                                            CameraPreview(manager: camera)
+                                        }
+                                    }
+                                }
+                            }
+                            
+                        case 6:
+                            VStack(spacing: 10) {
+                                ForEach(0..<3, id: \.self) { _ in
+                                    HStack(spacing: 10) {
+                                        ForEach(0..<2, id: \.self) { _ in
+                                            CameraPreview(manager: camera)
+                                        }
+                                    }
+                                }
+                            }
+                            
+                        default:
+                            EmptyView()
+                        }
+                    }
+                    .id(selectedFrameModel.slots)
+                    .padding(10)
+                    .overlay {
+                        Image(selectedFrameModel.name)
+                            .resizable()
+                            .offset()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .cornerRadius(10)
+                            .clipped()
+                    }
                     
                     if isSelectFrame {
                         FrameSelectView(
@@ -50,7 +89,7 @@ struct BoothView: View {
                                 set: { newValue in
                                     if let newIndex = frameModels.firstIndex(where: { $0.name == newValue }) {
                                         selectedFrameIndex = newIndex
-                                        capturedImages = [nil, nil, nil]
+                                        capturedImages = []
                                         currentSlotIndex = 0
                                     }
                                 }
@@ -98,11 +137,21 @@ struct BoothView: View {
                         .frame(width: 70, height: 70)
                         .clipShape(Circle())
                 }
+                .disabled(currentSlotIndex >= selectedFrameModel.slots)
             }
         }
         .padding(16)
+        .onAppear {
+            capturedImages = Array(repeating: nil, count: selectedFrameModel.slots)
+        }
+        .onChange(of: selectedFrameIndex) { _ in
+            capturedImages = Array(repeating: nil, count: selectedFrameModel.slots)
+            currentSlotIndex = 0
+        }
         .onChange(of: camera.capturedImage) { image in
             guard let image = image else { return }
+            
+            guard currentSlotIndex < capturedImages.count else { return }
             
             capturedImages[currentSlotIndex] = image
             currentSlotIndex += 1
@@ -115,12 +164,18 @@ struct BoothView: View {
         .navigationDestination(isPresented: $goToEditor) {
             PhotoView(
                 photos: capturedImages.compactMap { $0 },
-                frameName: selectedFrameModel.name
+                frameName: selectedFrameModel.name,
+                slotCount: selectedFrameModel.slots
             ) {
-                capturedImages = [nil, nil, nil]
+                capturedImages = Array(repeating: nil, count: selectedFrameModel.slots)
                 currentSlotIndex = 0
                 camera.session.startRunning()
             }
         }
+    }
+}
+extension Array {
+    subscript(safe index: Int) -> Element? {
+        return indices.contains(index) ? self[index] : nil
     }
 }

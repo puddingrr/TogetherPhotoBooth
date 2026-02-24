@@ -8,7 +8,7 @@ import SwiftUI
 
 struct FrameSelectView: View {
     
-    let frames = ["frame1", "frame2", "frame3"]
+    let frames = ["frame1", "frame2", "frame3", "frame4", "frame5", "frame6"]
     @Binding var selectedFrame: String
     @Binding var isPresented: Bool
     
@@ -45,6 +45,8 @@ struct FrameModel {
 
 let frameModels: [FrameModel] = [
     FrameModel(name: "frame1", frameWidth: 400, frameHeight: 485, slots: 1),
-    FrameModel(name: "frame2", frameWidth: 400, frameHeight: 1200, slots: 3),
-    FrameModel(name: "frame3", frameWidth: 400, frameHeight: 1200, slots: 3)
+    FrameModel(name: "frame2", frameWidth: 400, frameHeight: 1200, slots: 2),
+    FrameModel(name: "frame3", frameWidth: 400, frameHeight: 1200, slots: 3),
+    FrameModel(name: "frame4", frameWidth: 400, frameHeight: 1200, slots: 4),
+    FrameModel(name: "frame6", frameWidth: 400, frameHeight: 1200, slots: 6)
 ]

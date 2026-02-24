@@ -92,13 +92,11 @@ final class PreviewView: UIView {
         set {
             videoLayer.session = newValue
             videoLayer.videoGravity = .resizeAspectFill
-            
-//            // Fix front camera mirroring
-//            if let connection = videoLayer.connection, connection.isVideoMirroringSupported {
-//                // Disable automatic mirroring first
-//                connection.automaticallyAdjustsVideoMirroring = false
-//                connection.isVideoMirrored = false // now you can safely set it
-//            }
         }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        videoLayer.frame = bounds   
     }
 }
