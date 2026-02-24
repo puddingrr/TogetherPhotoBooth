@@ -10,9 +10,22 @@
 		FA5BE07C2F4D4D4F00A3F9A5 /* TogetherPhotoBooth.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TogetherPhotoBooth.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		FA91E8AD2F4DAB5D00CEB64B /* Exceptions for "TogetherPhotoBooth" folder in "TogetherPhotoBooth" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = FA5BE07B2F4D4D4F00A3F9A5 /* TogetherPhotoBooth */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		FA5BE07E2F4D4D4F00A3F9A5 /* TogetherPhotoBooth */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				FA91E8AD2F4DAB5D00CEB64B /* Exceptions for "TogetherPhotoBooth" folder in "TogetherPhotoBooth" target */,
+			);
 			path = TogetherPhotoBooth;
 			sourceTree = "<group>";
 		};
@@ -256,11 +269,16 @@
 				DEVELOPMENT_TEAM = L8AZ2R74ZV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TogetherPhotoBooth/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = NSPhotoLibraryAddUsageDescription;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera so you can take beautiful selfie photos with frames and stickers.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need access to save your photo";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -288,11 +306,16 @@
 				DEVELOPMENT_TEAM = L8AZ2R74ZV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TogetherPhotoBooth/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = NSPhotoLibraryAddUsageDescription;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera so you can take beautiful selfie photos with frames and stickers.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need access to save your photo";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

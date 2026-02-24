@@ -11,7 +11,9 @@ import SwiftUI
 struct TogetherPhotoBoothApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationStack {
+                BoothView()
+            }
         }
     }
 }
