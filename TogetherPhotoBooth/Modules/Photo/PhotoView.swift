@@ -10,26 +10,15 @@ import AVFoundation
 
 struct PhotoView: View {
     
+    @ObservedObject var viewModel: PhotoBootsViewModel
     @StateObject private var camera = CameraManager()
     
     let photos: [UIImage]
     let layoutName: String
     let slotCount: Int
     let onFinish: () -> Void
-    
-    @State private var stickers: [UIImage] = []
-    
+        
     @Environment(\.dismiss) private var dismiss
-    @State private var showSavedAlert = false
-    
-    @State private var showTextEditor = false
-    @State private var newText: String = ""
-    @State private var showStickerSheet = false
-    @State private var showPhotoPicker = false
-    @State private var drawingEnabled = false
-    
-    @State private var selectedFrameIndex: Int = 0
-    @State private var isSelectFrame = false
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -82,15 +71,15 @@ struct PhotoView: View {
                         .padding(.horizontal, 8)
                         .clipped()
                     
-                    ForEach(stickers, id: \.self) { sticker in
+                    ForEach(viewModel.stickers, id: \.self) { sticker in
                         StickerView(image: sticker)
                     }
                     
-                    if showTextEditor {
-                        TextField("Enter text", text: $newText, onCommit: {
-                            stickers.append(textToImage(newText))
-                            newText = ""
-                            showTextEditor = false
+                    if viewModel.showTextEditor {
+                        TextField("Enter text", text: $viewModel.newText, onCommit: {
+                            viewModel.stickers.append(textToImage(viewModel.newText))
+                            viewModel.newText = ""
+                            viewModel.showTextEditor = false
                         })
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding()
@@ -98,7 +87,7 @@ struct PhotoView: View {
                         .cornerRadius(8)
                     }
                     
-                    if drawingEnabled {
+                    if viewModel.drawingEnabled {
                         DrawingCanvasView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .background(Color.clear)
@@ -131,9 +120,9 @@ struct PhotoView: View {
                 
                 HStack {
                     Button {
-                        isSelectFrame.toggle()
+                        viewModel.isSelectFrame.toggle()
                     } label: {
-                        Image(frameModels[selectedFrameIndex].name)
+                        Image(frameModels[viewModel.selectedFrameIndex].name)
                             .resizable()
                             .frame(width: 40, height: 40)
                             .cornerRadius(10)
@@ -147,7 +136,7 @@ struct PhotoView: View {
                     
                     Button {
                         saveImage()
-                        showSavedAlert = true
+                        viewModel.showSavedAlert = true
                     } label: {
                         Text("Download")
                             .font(.system(size: 14, weight: .bold))
@@ -158,22 +147,22 @@ struct PhotoView: View {
                 }
                 .padding()
             }
-            if isSelectFrame {
+            if viewModel.isSelectFrame {
                 FrameSelectView(
                     selectedFrame: Binding(
-                        get: { frameModels[selectedFrameIndex] },
+                        get: { frameModels[viewModel.selectedFrameIndex] },
                         set: { newValue in
                             if let newIndex = frameModels.firstIndex(where: { $0.id == newValue.id }) {
-                                selectedFrameIndex = newIndex
+                                viewModel.selectedFrameIndex = newIndex
                             }
                         }
                     ),
-                    isPresented: $isSelectFrame
+                    isPresented: $viewModel.isSelectFrame
                 )
                 .padding(.bottom, 60)
             }
         }
-        .alert("Saved!", isPresented: $showSavedAlert) {
+        .alert("Saved!", isPresented: $viewModel.showSavedAlert) {
             Button("OK") {
                 dismiss()
                 onFinish()
@@ -181,7 +170,7 @@ struct PhotoView: View {
         } message: {
             Text("Your photo has been saved to your gallery 💖")
         }
-        .sheet(isPresented: $showStickerSheet) {
+        .sheet(isPresented: $viewModel.showStickerSheet) {
             VStack {
                 Text("Select a sticker").font(.headline).padding()
                 ScrollView(.horizontal) {
@@ -192,15 +181,15 @@ struct PhotoView: View {
                                 .frame(width: 60, height: 60)
                                 .onTapGesture {
                                     if let img = UIImage(named: name) {
-                                        stickers.append(img)
+                                        viewModel.stickers.append(img)
                                     }
-                                    showStickerSheet = false
+                                    viewModel.showStickerSheet = false
                                 }
                         }
                     }
                     .padding()
                 }
-                Button("Close") { showStickerSheet = false }
+                Button("Close") { viewModel.showStickerSheet = false }
                     .padding()
             }
         }
@@ -211,13 +200,13 @@ extension PhotoView {
     func handleAction(_ action: PhotoAction) {
         switch action {
         case .text:
-            showTextEditor = true
+            viewModel.showTextEditor = true
         case .sticker:
-            showStickerSheet = true
+            viewModel.showStickerSheet = true
         case .draw:
-            drawingEnabled.toggle()
+            viewModel.drawingEnabled.toggle()
         case .image:
-            showPhotoPicker = true
+            viewModel.showPhotoPicker = true
         }
     }
     func saveImage() {
@@ -254,12 +243,12 @@ extension PhotoView {
                 .frame(width: UIScreen.main.bounds.width, height: grid.totalHeight)
                 .padding(.horizontal, grid.horizontalPadding)
                 
-                // Overlay stickers
-                ForEach(stickers, id: \.self) { sticker in
+                //stickers
+            ForEach(viewModel.stickers, id: \.self) { sticker in
                     Image(uiImage: sticker)
                 }
                 
-                // Overlay frame image
+                // frame image
                 if let frameImage = UIImage(named: layoutName) {
                     Image(uiImage: frameImage)
                         .resizable()

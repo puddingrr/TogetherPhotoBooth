@@ -40,7 +40,7 @@ struct LayoutSelectView: View {
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
+            HStack(spacing: 4) {
                 ForEach(layouts.indices, id: \.self) { i in
                     VStack(spacing: 8) {
                         layoutPreview(layout: layouts[i])

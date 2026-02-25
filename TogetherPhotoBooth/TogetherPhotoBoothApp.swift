@@ -12,7 +12,7 @@ struct TogetherPhotoBoothApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                BoothView()
+                PhotoBootsView()
             }
         }
     }

@@ -9,16 +9,12 @@ import SwiftUI
 
 struct BoothView: View {
     
-    @StateObject private var camera = CameraManager()
+    @StateObject var viewModel = PhotoBootsViewModel()
+    @StateObject var camera = CameraManager()
     
-    @State private var capturedImages: [UIImage] = []
-    @State private var currentSlotIndex = 0
-    @State private var goToEditor = false
+    @State var goToEditor = false
     
-    @State private var selectedLayoutIndex: Int = 0
-    @State private var isSelectLayout = false
-    
-    var selectedLayout: LayoutModel { predefinedLayouts[selectedLayoutIndex] }
+    var selectedLayout: LayoutModel { predefinedLayouts[viewModel.selectedLayoutIndex] }
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -40,10 +36,10 @@ struct BoothView: View {
                         )
                     }
                     
-                    LayoutGridView(layout: selectedLayout, capturedImages: capturedImages)
+                    LayoutGridView(layout: selectedLayout, capturedImages: viewModel.capturedImages)
 
-                    if currentSlotIndex < selectedLayout.slots {
-                        let pos = currentGrid.position(for: currentSlotIndex)
+                    if viewModel.currentSlotIndex < selectedLayout.slots {
+                        let pos = currentGrid.position(for: viewModel.currentSlotIndex)
 
                         CameraPreview(manager: camera)
                             .frame(width: currentGrid.slotWidth, height: currentGrid.slotHeight)
@@ -53,7 +49,7 @@ struct BoothView: View {
                                 x: CGFloat(pos.column) * (currentGrid.slotWidth + currentGrid.spacing) + currentGrid.horizontalPadding,
                                 y: CGFloat(pos.row) * (currentGrid.slotHeight + currentGrid.spacing)
                             )
-                            .animation(.easeInOut(duration: 0.3), value: currentSlotIndex)
+                            .animation(.easeInOut(duration: 0.3), value: viewModel.currentSlotIndex)
                     }
                     
                     Color.white.opacity(0.1)
@@ -65,9 +61,9 @@ struct BoothView: View {
                 
                 HStack {
                     Button {
-                        isSelectLayout.toggle()
+                        viewModel.isSelectLayout.toggle()
                     } label: {
-                        Image(predefinedLayouts[selectedLayoutIndex].name)
+                        Image(predefinedLayouts[viewModel.selectedLayoutIndex].name)
                             .resizable()
                             .frame(width: 40, height: 40)
                             .cornerRadius(10)
@@ -78,9 +74,9 @@ struct BoothView: View {
                     }
                     Spacer()
                     
-                    if !capturedImages.isEmpty {
+                    if !viewModel.capturedImages.isEmpty {
                         Button {
-                            resetSession()
+                            viewModel.resetSession()
                         } label: {
                             Image(systemName: "xmark")
                                 .foregroundColor(.red)
@@ -99,60 +95,53 @@ struct BoothView: View {
                             .frame(width: 70, height: 70)
                             .clipShape(Circle())
                     }
-                    .disabled(currentSlotIndex >= selectedLayout.slots)
+                    .disabled(viewModel.currentSlotIndex >= selectedLayout.slots)
                 }
             }
             
-            if isSelectLayout {
+            if viewModel.isSelectLayout {
                 LayoutSelectView(
-                    selectedLayout: $selectedLayoutIndex,
-                    isPresented: $isSelectLayout
+                    selectedLayout: $viewModel.selectedLayoutIndex,
+                    isPresented: $viewModel.isSelectLayout
                 )
                 .padding(.bottom, 70)
-                .onChange(of: selectedLayoutIndex) { _ in
-                    resetSession()
+                .onChange(of: viewModel.selectedLayoutIndex) { _ in
+                    viewModel.resetSession()
                 }
             }
         }
         .onAppear {
-            resetSession()
+            viewModel.resetSession()
             camera.startSession()
         }
-        .onChange(of: selectedLayoutIndex) { _ in
-            resetSession()
+        .onChange(of: viewModel.selectedLayoutIndex) { _ in
+            viewModel.resetSession()
         }
         .onChange(of: camera.capturedImage) { image in
             guard let image = image else { return }
             
-            capturedImages.append(image)
-            currentSlotIndex += 1
+            viewModel.capturedImages.append(image)
+            viewModel.currentSlotIndex += 1
             camera.capturedImage = nil
             
-            if currentSlotIndex >= selectedLayout.slots {
+            if viewModel.currentSlotIndex >= selectedLayout.slots {
                 goToEditor = true
             }
         }
         .navigationDestination(isPresented: $goToEditor) {
             PhotoView(
-                photos: capturedImages.compactMap { $0 },
+                viewModel: viewModel,
+                photos: viewModel.capturedImages.compactMap { $0 },
                 layoutName: selectedLayout.name,
                 slotCount: selectedLayout.slots
             ) {
-                resetSession()
+                viewModel.resetSession()
                 camera.startSession()
             }
         }
         .onDisappear {
             camera.stopSession()
         }
-    }
-    private func resetSession() {
-        capturedImages = []
-        currentSlotIndex = 0
-    }
-}
-extension Array {
-    subscript(safe index: Int) -> Element? {
-        return indices.contains(index) ? self[index] : nil
+        .navigationBarBackButtonHidden(true)
     }
 }
