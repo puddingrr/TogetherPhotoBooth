@@ -36,32 +36,50 @@ struct PhotoView: View {
             VStack(spacing: 0) {
                 
                 ZStack(alignment: .top) {
-                    let totalHeight: CGFloat = 500
-                    let slotHeight = totalHeight / CGFloat(slotCount)
-                    
-                    VStack(spacing: 16) {
-                        ForEach(0..<slotCount, id: \.self) { index in
-                            
-                            if index < photos.count {
-                                Image(uiImage: photos[index])
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(height: slotHeight)
-                                    .clipped()
-                            } else {
-                                Color.clear
-                                    .frame(height: slotHeight)
+                    let grid = GridLayout(
+                        slotCount: slotCount,
+                        totalWidth: UIScreen.main.bounds.width,
+                        totalHeight: 600
+                    )
+
+                    VStack(spacing: grid.spacing) {
+                        ForEach(0..<grid.rows, id: \.self) { row in
+                            HStack(spacing: grid.spacing) {
+                                ForEach(0..<grid.columns, id: \.self) { column in
+                                    let index = row * grid.columns + column
+                                    
+                                    if index < slotCount {
+                                        ZStack {
+                                            Rectangle()
+                                                .fill(Color.gray.opacity(0.1))
+                                            
+                                            if let image = photos[safe: index] {
+                                                Image(uiImage: image)
+                                                    .resizable()
+                                                    .scaledToFill()
+                                                    .frame(width: grid.slotWidth, height: grid.slotHeight)
+                                                    .clipped()
+                                            }
+                                        }
+                                        .frame(width: grid.slotWidth, height: grid.slotHeight)
+                                        .cornerRadius(8)
+                                    } else {
+                                        Spacer()
+                                            .frame(width: grid.slotWidth, height: grid.slotHeight)
+                                    }
+                                }
                             }
                         }
                     }
-                    .padding(.all, slotCount >= 2 ? 46 : 32)
+                    .frame(height: grid.totalHeight)
+                    .padding(.horizontal, grid.horizontalPadding)
                     
                     Color.white.opacity(0.1)
-
+                    
                     Image(frameName)
                         .resizable()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 8)
                         .clipped()
                     
                     ForEach(stickers, id: \.self) { sticker in
@@ -104,9 +122,10 @@ struct PhotoView: View {
                             }
                         }
                     }
-                    .padding(.trailing, 16)
+                    .padding(16)
                 }
-                .padding(.top, 16)
+                .frame(height: 600)
+                .padding(.top, 12)
                 
                 Spacer()
                 

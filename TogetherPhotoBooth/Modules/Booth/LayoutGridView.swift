@@ -8,39 +8,22 @@
 import SwiftUI
 
 struct LayoutGridView: View {
-    
     let layout: FrameModel
     let capturedImages: [UIImage]
-    
     let totalHeight: CGFloat = 600
-    let horizontalPadding: CGFloat = 8
-    let spacing: CGFloat = 4
-    
-    var columns: Int {
-        if layout.slots <= 3 { return 1 }
-        else if layout.slots == 4 { return 2 }
-        else { return 3 }
-    }
-    
-    var rows: Int {
-        Int(ceil(Double(layout.slots) / Double(columns)))
-    }
-    
-    var slotHeight: CGFloat {
-        (totalHeight - CGFloat(rows - 1) * spacing) / CGFloat(rows)
-    }
-    
-    var slotWidth: CGFloat {
-        let totalWidth = UIScreen.main.bounds.width - horizontalPadding * 2
-        return (totalWidth - CGFloat(columns - 1) * spacing) / CGFloat(columns)
-    }
     
     var body: some View {
-        VStack(spacing: spacing) {
-            ForEach(0..<rows, id: \.self) { row in
-                HStack(spacing: spacing) {
-                    ForEach(0..<columns, id: \.self) { column in
-                        let index = row * columns + column
+        let grid = GridLayout(
+            slotCount: layout.slots,
+            totalWidth: UIScreen.main.bounds.width,
+            totalHeight: totalHeight
+        )
+        
+        VStack(spacing: grid.spacing) {
+            ForEach(0..<grid.rows, id: \.self) { row in
+                HStack(spacing: grid.spacing) {
+                    ForEach(0..<grid.columns, id: \.self) { column in
+                        let index = row * grid.columns + column
                         
                         if index < layout.slots {
                             ZStack {
@@ -51,22 +34,55 @@ struct LayoutGridView: View {
                                     Image(uiImage: image)
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: slotWidth, height: slotHeight)
+                                        .frame(width: grid.slotWidth, height: grid.slotHeight)
                                         .clipped()
                                 }
                             }
-                            .frame(width: slotWidth, height: slotHeight)
-                            .clipped()
+                            .frame(width: grid.slotWidth, height: grid.slotHeight)
                             .cornerRadius(8)
                         } else {
                             Spacer()
-                                .frame(width: slotWidth, height: slotHeight)
+                                .frame(width: grid.slotWidth, height: grid.slotHeight)
                         }
                     }
                 }
             }
         }
         .frame(height: totalHeight)
-        .padding(.horizontal, horizontalPadding)
+        .padding(.horizontal, grid.horizontalPadding)
+    }
+}
+
+struct GridLayout {
+    let slotCount: Int
+    let totalWidth: CGFloat
+    let totalHeight: CGFloat
+    let horizontalPadding: CGFloat = 8
+    let spacing: CGFloat = 4
+    
+    var columns: Int {
+        if slotCount <= 3 { return 1 }
+        else if slotCount == 4 { return 2 }
+        else { return 3 }
+    }
+    
+    var rows: Int {
+        Int(ceil(Double(slotCount) / Double(columns)))
+    }
+    
+    var slotWidth: CGFloat {
+        let totalSpacing = CGFloat(columns - 1) * spacing
+        return (totalWidth - horizontalPadding * 2 - totalSpacing) / CGFloat(columns)
+    }
+    
+    var slotHeight: CGFloat {
+        let totalSpacing = CGFloat(rows - 1) * spacing
+        return (totalHeight - totalSpacing) / CGFloat(rows)
+    }
+    
+    func position(for index: Int) -> (row: Int, column: Int) {
+        let row = index / columns
+        let column = index % columns
+        return (row, column)
     }
 }

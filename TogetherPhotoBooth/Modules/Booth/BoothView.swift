@@ -38,38 +38,24 @@ struct BoothView: View {
                 
                 ZStack(alignment: .topLeading) {
                     
-                    let slotCount = selectedFrameModel.slots
-                    let totalHeight: CGFloat = 600
-                    let spacing: CGFloat = 4
-                    let horizontalPadding: CGFloat = 8
-
-                    let columns: Int = {
-                        if slotCount <= 3 { return 1 }
-                        else if slotCount == 4 { return 2 }
-                        else { return 3 }
-                    }()
-
-                    let rows = Int(ceil(Double(slotCount) / Double(columns)))
-                    
-                    let slotWidth = (UIScreen.main.bounds.width - horizontalPadding * 2 - CGFloat(columns - 1) * spacing) / CGFloat(columns)
-                    let slotHeight = (totalHeight - CGFloat(rows - 1) * spacing) / CGFloat(rows)
-
-                    LayoutGridView(
-                        layout: selectedFrameModel,
-                        capturedImages: capturedImages
+                    let grid = GridLayout(
+                        slotCount: selectedFrameModel.slots,
+                        totalWidth: UIScreen.main.bounds.width,
+                        totalHeight: 600
                     )
+                    
+                    LayoutGridView(layout: selectedFrameModel, capturedImages: capturedImages)
 
-                    if currentSlotIndex < slotCount {
-                        let currentRow = currentSlotIndex / columns
-                        let currentColumn = currentSlotIndex % columns
+                    if currentSlotIndex < selectedFrameModel.slots {
+                        let pos = grid.position(for: currentSlotIndex)
                         
                         CameraPreview(manager: camera)
-                            .frame(width: slotWidth, height: slotHeight)
+                            .frame(width: grid.slotWidth, height: grid.slotHeight)
                             .cornerRadius(8)
                             .clipped()
                             .offset(
-                                x: CGFloat(currentColumn) * (slotWidth + spacing) + horizontalPadding,
-                                y: CGFloat(currentRow) * (slotHeight + spacing)
+                                x: CGFloat(pos.column) * (grid.slotWidth + grid.spacing) + grid.horizontalPadding,
+                                y: CGFloat(pos.row) * (grid.slotHeight + grid.spacing)
                             )
                             .animation(.easeInOut(duration: 0.3), value: currentSlotIndex)
                     }
