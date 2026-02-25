@@ -38,15 +38,13 @@ struct FrameSelectView: View {
 
 struct FrameModel {
     let name: String
-    let frameWidth: CGFloat
-    let frameHeight: CGFloat
     let slots: Int
 }
 
 let frameModels: [FrameModel] = [
-    FrameModel(name: "frame1", frameWidth: 400, frameHeight: 485, slots: 1),
-    FrameModel(name: "frame2", frameWidth: 400, frameHeight: 1200, slots: 2),
-    FrameModel(name: "frame3", frameWidth: 400, frameHeight: 1200, slots: 3),
-    FrameModel(name: "frame4", frameWidth: 400, frameHeight: 1200, slots: 4),
-    FrameModel(name: "frame6", frameWidth: 400, frameHeight: 1200, slots: 6)
+    FrameModel(name: "frame1", slots: 1),
+    FrameModel(name: "frame2", slots: 2),
+    FrameModel(name: "frame3", slots: 3),
+    FrameModel(name: "frame4", slots: 4),
+    FrameModel(name: "frame6", slots: 6)
 ]

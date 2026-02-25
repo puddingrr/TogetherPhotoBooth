@@ -29,96 +29,73 @@ struct PhotoView: View {
     @State private var drawingEnabled = false
     
     var body: some View {
-        VStack {
-            VStack {
-                ZStack {
-                    Group {
-                        switch slotCount {
-                            
-                        case 1:
-                            if let photo = photos.first {
-                                Image(uiImage: photo)
-                                    .resizable()
-                                    .scaledToFill()
-                            }
-                            
-                        case 2, 3:
-                            VStack(spacing: 10) {
-                                ForEach(Array(photos.enumerated()), id: \.offset) { _, photo in
-                                    Image(uiImage: photo)
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-                            }
-                            
-                        case 4:
-                            VStack(spacing: 10) {
-                                ForEach(0..<2, id: \.self) { row in
-                                    HStack(spacing: 10) {
-                                        ForEach(0..<2, id: \.self) { col in
-                                            let index = row * 2 + col
-                                            if index < photos.count {
-                                                Image(uiImage: photos[index])
-                                                    .resizable()
-                                                    .scaledToFill()
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                        case 6:
-                            VStack(spacing: 10) {
-                                ForEach(0..<3, id: \.self) { row in
-                                    HStack(spacing: 10) {
-                                        ForEach(0..<2, id: \.self) { col in
-                                            let index = row * 2 + col
-                                            if index < photos.count {
-                                                Image(uiImage: photos[index])
-                                                    .resizable()
-                                                    .scaledToFill()
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                        default:
-                            EmptyView()
+        VStack(spacing: 0) {
+//            HStack {
+//                Spacer()
+//                
+//                Button {
+//                    ()
+//                } label: {
+//                    Image(systemName: "xmark")
+//                        .foregroundColor(.red)
+//                        .frame(width: 40, height: 40)
+//                }
+//            }
+//            .padding(12)
+//            .background(Color.yellow)
+            
+            ZStack(alignment: .top) {
+                let totalHeight: CGFloat = 500
+                let slotHeight = totalHeight / CGFloat(slotCount)
+                                
+                VStack(spacing: 16) {
+                    ForEach(0..<slotCount, id: \.self) { index in
+                        
+                        if index < photos.count {
+                            Image(uiImage: photos[index])
+                                .resizable()
+                                .scaledToFill()
+                                .frame(height: slotHeight)
+                                .clipped()
+                        } else {
+                            Color.clear
+                                .frame(height: slotHeight)
                         }
                     }
-                    .padding(10)
-//                    Image(frameName)
-//                        .resizable()
-//                        .offset()
-//                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                        .cornerRadius(10)
-//                        .clipped()
-                    
-                    ForEach(stickers, id: \.self) { sticker in
-                        StickerView(image: sticker)
-                    }
-                    
-                    if showTextEditor {
-                        TextField("Enter text", text: $newText, onCommit: {
-                            stickers.append(textToImage(newText))
-                            newText = ""
-                            showTextEditor = false
-                        })
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding()
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(8)
-                    }
-                    
-                    // Drawing overlay
-                    if drawingEnabled {
-                        DrawingCanvasView()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.clear)
-                    }
+                }
+                .padding(.all, slotCount >= 2 ? 46 : 32)
+
+                Image(frameName)
+                    .resizable()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, 16)
+                    .clipped()
+                
+                ForEach(stickers, id: \.self) { sticker in
+                    StickerView(image: sticker)
+                }
+                
+                if showTextEditor {
+                    TextField("Enter text", text: $newText, onCommit: {
+                        stickers.append(textToImage(newText))
+                        newText = ""
+                        showTextEditor = false
+                    })
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+                    .background(Color.white.opacity(0.8))
+                    .cornerRadius(8)
+                }
+                
+                if drawingEnabled {
+                    DrawingCanvasView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.clear)
                 }
             }
+            .padding(.top, 16)
+            
+            Spacer()
             
             HStack {
                 HStack(spacing: 8) {
@@ -136,7 +113,7 @@ struct PhotoView: View {
                         }
                     }
                 }
-
+                
                 Spacer()
                 
                 Button {
@@ -150,9 +127,8 @@ struct PhotoView: View {
                         .background(Color.green.cornerRadius(10))
                 }
             }
-            .padding(.top, 10)
+            .padding()
         }
-        .padding(16)
         .alert("Saved!", isPresented: $showSavedAlert) {
             Button("OK") {
                 dismiss()

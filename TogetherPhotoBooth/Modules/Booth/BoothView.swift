@@ -5,14 +5,13 @@
 //  Created by Dalynn on 2/24/26.
 //
 
-import AVFoundation
 import SwiftUI
 
 struct BoothView: View {
     
     @StateObject private var camera = CameraManager()
     
-    @State private var capturedImages: [UIImage?] = []
+    @State private var capturedImages: [UIImage] = []
     @State private var currentSlotIndex = 0
     @State private var goToEditor = false
     
@@ -28,132 +27,152 @@ struct BoothView: View {
     }
     
     var body: some View {
-        VStack {
-            VStack {
-                ZStack(alignment: .bottom) {
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                HStack {
+                    Button {
+                        isSelectFrame.toggle()
+                    } label: {
+                        Image(frameModels[selectedFrameIndex].name)
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(.gray, lineWidth: 3)
+                            )
+                    }
+                    Spacer()
                     
-                    Group {
-                        switch selectedFrameModel.slots {
-                            
-                        case 1:
-                            CameraPreview(manager: camera)
-                            
-                        case 2, 3:
-                            VStack(spacing: 10) {
-                                ForEach(0..<selectedFrameModel.slots, id: \.self) { _ in
-                                    CameraPreview(manager: camera)
-                                }
-                            }
-                            
-                        case 4:
-                            VStack(spacing: 10) {
-                                ForEach(0..<2, id: \.self) { _ in
-                                    HStack(spacing: 10) {
-                                        ForEach(0..<2, id: \.self) { _ in
-                                            CameraPreview(manager: camera)
-                                        }
-                                    }
-                                }
-                            }
-                            
-                        case 6:
-                            VStack(spacing: 10) {
-                                ForEach(0..<3, id: \.self) { _ in
-                                    HStack(spacing: 10) {
-                                        ForEach(0..<2, id: \.self) { _ in
-                                            CameraPreview(manager: camera)
-                                        }
-                                    }
-                                }
-                            }
-                            
-                        default:
-                            EmptyView()
+                    if !capturedImages.isEmpty {
+                        Button {
+                            resetSession()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .foregroundColor(.red)
+                                .frame(width: 40, height: 40)
                         }
                     }
-                    .id(selectedFrameModel.slots)
-                    .padding(10)
-                    .overlay {
-                        Image(selectedFrameModel.name)
-                            .resizable()
-                            .offset()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .cornerRadius(10)
+                }
+                .padding(12)
+                
+                ZStack(alignment: .top) {
+                    
+                    let slotCount = selectedFrameModel.slots
+                    let totalHeight: CGFloat = 500
+                    let slotHeight = totalHeight / CGFloat(slotCount) - 16
+                    
+                    VStack(spacing: 16) {
+                        ForEach(0..<slotCount, id: \.self) { index in
+                            
+                            if index < capturedImages.count {
+                                Image(uiImage: capturedImages[index])
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(height: slotHeight)
+                                    .clipped()
+                            } else {
+                                Color.clear
+                                    .frame(height: slotHeight)
+                            }
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.all, 32)
+                    
+                    if currentSlotIndex < slotCount {
+                        CameraPreview(manager: camera)
+                            .frame(height: slotHeight)
                             .clipped()
+                            .offset(y: CGFloat(currentSlotIndex) * slotHeight + 16 * CGFloat(currentSlotIndex))
+                            .animation(.easeInOut(duration: 0.3), value: currentSlotIndex)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(.red, lineWidth: 3)
+                            )
+                            .padding(.all, 32)
                     }
                     
-                    if isSelectFrame {
-                        FrameSelectView(
-                            selectedFrame: Binding(
-                                get: { frameModels[selectedFrameIndex].name },
-                                set: { newValue in
-                                    if let newIndex = frameModels.firstIndex(where: { $0.name == newValue }) {
-                                        selectedFrameIndex = newIndex
-                                        capturedImages = []
-                                        currentSlotIndex = 0
-                                    }
-                                }
-                            ),
-                            isPresented: $isSelectFrame
-                        )
+                    Image(selectedFrameModel.name)
+                        .resizable()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.horizontal, 16)
+                        .clipped()
+                    
+                }
+                .frame(height: 600)
+                .padding(.top, 16)
+                
+                Spacer()
+                
+                HStack {
+                    Button {
+                        isSelectFrame.toggle()
+                    } label: {
+                        Image(frameModels[selectedFrameIndex].name)
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(.gray, lineWidth: 3)
+                            )
                     }
+                    Spacer()
+                    
+                    if !capturedImages.isEmpty {
+                        Button {
+                            resetSession()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .foregroundColor(.red)
+                                .frame(width: 40, height: 40)
+                        }
+                    }
+                }
+                .padding()
+                .overlay {
+                    Button {
+                        camera.capturePhoto()
+                    } label: {
+                        Image("captureBotton")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 70, height: 70)
+                            .clipShape(Circle())
+                    }
+                    .disabled(currentSlotIndex >= selectedFrameModel.slots)
                 }
             }
             
-            HStack {
-                Button {
-                    isSelectFrame.toggle()
-                } label: {
-                    Image(frameModels[selectedFrameIndex].name)
-                        .resizable()
-                        .frame(width: 40, height: 40)
-                        .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(.gray, lineWidth: 3)
-                        )
-                }
-                Spacer()
-                
-                if capturedImages.isEmpty {
-                    Button {
-                        capturedImages = [nil, nil, nil]
-                        currentSlotIndex = 0
-                    } label: {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.red)
-                            .frame(width: 40, height: 40)
-                    }
-                }
-            }
-            .padding()
-            .overlay {
-                Button {
-                    camera.capturePhoto()
-                } label: {
-                    Image("captureBotton")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 70, height: 70)
-                        .clipShape(Circle())
-                }
-                .disabled(currentSlotIndex >= selectedFrameModel.slots)
+            if isSelectFrame {
+                FrameSelectView(
+                    selectedFrame: Binding(
+                        get: { frameModels[selectedFrameIndex].name },
+                        set: { newValue in
+                            if let newIndex = frameModels.firstIndex(where: { $0.name == newValue }) {
+                                selectedFrameIndex = newIndex
+                                capturedImages = []
+                                currentSlotIndex = 0
+                            }
+                        }
+                    ),
+                    isPresented: $isSelectFrame
+                )
+                .padding(.bottom, 70)
             }
         }
-        .padding(16)
         .onAppear {
-            capturedImages = Array(repeating: nil, count: selectedFrameModel.slots)
+            resetSession()
+            camera.startSession()
         }
         .onChange(of: selectedFrameIndex) { _ in
-            capturedImages = Array(repeating: nil, count: selectedFrameModel.slots)
-            currentSlotIndex = 0
+            resetSession()
         }
         .onChange(of: camera.capturedImage) { image in
             guard let image = image else { return }
             
-            guard currentSlotIndex < capturedImages.count else { return }
-            
-            capturedImages[currentSlotIndex] = image
+            capturedImages.append(image)
             currentSlotIndex += 1
             camera.capturedImage = nil
             
@@ -167,11 +186,17 @@ struct BoothView: View {
                 frameName: selectedFrameModel.name,
                 slotCount: selectedFrameModel.slots
             ) {
-                capturedImages = Array(repeating: nil, count: selectedFrameModel.slots)
-                currentSlotIndex = 0
-                camera.session.startRunning()
+                resetSession()
+                camera.startSession()
             }
         }
+        .onDisappear {
+            camera.stopSession()
+        }
+    }
+    private func resetSession() {
+        capturedImages = []
+        currentSlotIndex = 0
     }
 }
 extension Array {

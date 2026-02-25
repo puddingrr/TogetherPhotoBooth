@@ -16,9 +16,13 @@ final class CameraManager: NSObject, ObservableObject {
     let session = AVCaptureSession()
     private let output = AVCapturePhotoOutput()
     
+    private let sessionQueue = DispatchQueue(label: "camera.session.queue")
+    
     override init() {
         super.init()
-        configure()
+        sessionQueue.async {
+            self.configure()
+        }
     }
     
     private func configure() {
@@ -37,7 +41,22 @@ final class CameraManager: NSObject, ObservableObject {
         }
         
         session.commitConfiguration()
-        session.startRunning()
+    }
+    
+    func startSession() {
+        sessionQueue.async {
+            if !self.session.isRunning {
+                self.session.startRunning()
+            }
+        }
+    }
+    
+    func stopSession() {
+        sessionQueue.async {
+            if self.session.isRunning {
+                self.session.stopRunning()
+            }
+        }
     }
     
     func capturePhoto() {
