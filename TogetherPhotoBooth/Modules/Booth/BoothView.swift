@@ -28,80 +28,56 @@ struct BoothView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
+                        
             VStack(spacing: 0) {
-                HStack {
-                    Button {
-                        isSelectFrame.toggle()
-                    } label: {
-                        Image(frameModels[selectedFrameIndex].name)
-                            .resizable()
-                            .frame(width: 40, height: 40)
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(.gray, lineWidth: 3)
-                            )
-                    }
-                    Spacer()
-                    
-                    if !capturedImages.isEmpty {
-                        Button {
-                            resetSession()
-                        } label: {
-                            Image(systemName: "xmark")
-                                .foregroundColor(.red)
-                                .frame(width: 40, height: 40)
-                        }
-                    }
-                }
-                .padding(12)
                 
-                ZStack(alignment: .top) {
+                Image(.appLogo)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 50)
+                
+                ZStack(alignment: .topLeading) {
                     
                     let slotCount = selectedFrameModel.slots
-                    let totalHeight: CGFloat = 500
-                    let slotHeight = totalHeight / CGFloat(slotCount) - 16
+                    let totalHeight: CGFloat = 600
+                    let spacing: CGFloat = 4
+                    let horizontalPadding: CGFloat = 8
+
+                    let columns: Int = {
+                        if slotCount <= 3 { return 1 }
+                        else if slotCount == 4 { return 2 }
+                        else { return 3 }
+                    }()
+
+                    let rows = Int(ceil(Double(slotCount) / Double(columns)))
                     
-                    VStack(spacing: 16) {
-                        ForEach(0..<slotCount, id: \.self) { index in
-                            
-                            if index < capturedImages.count {
-                                Image(uiImage: capturedImages[index])
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(height: slotHeight)
-                                    .clipped()
-                            } else {
-                                Color.clear
-                                    .frame(height: slotHeight)
-                            }
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .padding(.all, 32)
-                    
+                    let slotWidth = (UIScreen.main.bounds.width - horizontalPadding * 2 - CGFloat(columns - 1) * spacing) / CGFloat(columns)
+                    let slotHeight = (totalHeight - CGFloat(rows - 1) * spacing) / CGFloat(rows)
+
+                    LayoutGridView(
+                        layout: selectedFrameModel,
+                        capturedImages: capturedImages
+                    )
+
                     if currentSlotIndex < slotCount {
+                        let currentRow = currentSlotIndex / columns
+                        let currentColumn = currentSlotIndex % columns
+                        
                         CameraPreview(manager: camera)
-                            .frame(height: slotHeight)
+                            .frame(width: slotWidth, height: slotHeight)
+                            .cornerRadius(8)
                             .clipped()
-                            .offset(y: CGFloat(currentSlotIndex) * slotHeight + 16 * CGFloat(currentSlotIndex))
-                            .animation(.easeInOut(duration: 0.3), value: currentSlotIndex)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(.red, lineWidth: 3)
+                            .offset(
+                                x: CGFloat(currentColumn) * (slotWidth + spacing) + horizontalPadding,
+                                y: CGFloat(currentRow) * (slotHeight + spacing)
                             )
-                            .padding(.all, 32)
+                            .animation(.easeInOut(duration: 0.3), value: currentSlotIndex)
                     }
                     
-                    Image(selectedFrameModel.name)
-                        .resizable()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(.horizontal, 16)
-                        .clipped()
-                    
+                    Color.white.opacity(0.1)
                 }
                 .frame(height: 600)
-                .padding(.top, 16)
+                .padding(.top, 12)
                 
                 Spacer()
                 
@@ -146,14 +122,13 @@ struct BoothView: View {
             }
             
             if isSelectFrame {
-                FrameSelectView(
-                    selectedFrame: Binding(
-                        get: { frameModels[selectedFrameIndex].name },
+                LayoutSelectView(
+                    selectedLayout: Binding(
+                        get: { frameModels[selectedFrameIndex] },
                         set: { newValue in
-                            if let newIndex = frameModels.firstIndex(where: { $0.name == newValue }) {
+                            if let newIndex = frameModels.firstIndex(where: { $0.id == newValue.id }) {
                                 selectedFrameIndex = newIndex
-                                capturedImages = []
-                                currentSlotIndex = 0
+                                resetSession()
                             }
                         }
                     ),

@@ -69,16 +69,23 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput,
                      didFinishProcessingPhoto photo: AVCapturePhoto,
                      error: Error?) {
+        
         guard let data = photo.fileDataRepresentation(),
-              var image = UIImage(data: data) else { return }
-        
-        // Flip image horizontally if front camera
-        if AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) != nil {
-            image = UIImage(cgImage: image.cgImage!, scale: image.scale, orientation: .leftMirrored)
+              let image = UIImage(data: data) else { return }
+
+        var finalImage = image
+
+        if let input = session.inputs.first as? AVCaptureDeviceInput,
+           input.device.position == .front {
+            finalImage = UIImage(
+                cgImage: image.cgImage!,
+                scale: image.scale,
+                orientation: .leftMirrored
+            )
         }
-        
+
         DispatchQueue.main.async {
-            self.capturedImage = image
+            self.capturedImage = finalImage
         }
     }
 }
@@ -111,6 +118,19 @@ final class PreviewView: UIView {
         set {
             videoLayer.session = newValue
             videoLayer.videoGravity = .resizeAspectFill
+
+            if let connection = videoLayer.connection,
+               connection.isVideoMirroringSupported {
+
+                connection.automaticallyAdjustsVideoMirroring = false
+
+                if let input = newValue?.inputs.first as? AVCaptureDeviceInput,
+                   input.device.position == .front {
+                    connection.isVideoMirrored = true
+                } else {
+                    connection.isVideoMirrored = false
+                }
+            }
         }
     }
 

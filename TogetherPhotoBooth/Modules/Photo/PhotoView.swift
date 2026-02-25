@@ -28,106 +28,131 @@ struct PhotoView: View {
     @State private var showPhotoPicker = false
     @State private var drawingEnabled = false
     
+    @State private var selectedFrameIndex: Int = 0
+    @State private var isSelectFrame = false
+    
     var body: some View {
-        VStack(spacing: 0) {
-//            HStack {
-//                Spacer()
-//                
-//                Button {
-//                    ()
-//                } label: {
-//                    Image(systemName: "xmark")
-//                        .foregroundColor(.red)
-//                        .frame(width: 40, height: 40)
-//                }
-//            }
-//            .padding(12)
-//            .background(Color.yellow)
-            
-            ZStack(alignment: .top) {
-                let totalHeight: CGFloat = 500
-                let slotHeight = totalHeight / CGFloat(slotCount)
-                                
-                VStack(spacing: 16) {
-                    ForEach(0..<slotCount, id: \.self) { index in
-                        
-                        if index < photos.count {
-                            Image(uiImage: photos[index])
-                                .resizable()
-                                .scaledToFill()
-                                .frame(height: slotHeight)
-                                .clipped()
-                        } else {
-                            Color.clear
-                                .frame(height: slotHeight)
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                
+                ZStack(alignment: .top) {
+                    let totalHeight: CGFloat = 500
+                    let slotHeight = totalHeight / CGFloat(slotCount)
+                    
+                    VStack(spacing: 16) {
+                        ForEach(0..<slotCount, id: \.self) { index in
+                            
+                            if index < photos.count {
+                                Image(uiImage: photos[index])
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(height: slotHeight)
+                                    .clipped()
+                            } else {
+                                Color.clear
+                                    .frame(height: slotHeight)
+                            }
                         }
                     }
-                }
-                .padding(.all, slotCount >= 2 ? 46 : 32)
+                    .padding(.all, slotCount >= 2 ? 46 : 32)
+                    
+                    Color.white.opacity(0.1)
 
-                Image(frameName)
-                    .resizable()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(.horizontal, 16)
-                    .clipped()
-                
-                ForEach(stickers, id: \.self) { sticker in
-                    StickerView(image: sticker)
-                }
-                
-                if showTextEditor {
-                    TextField("Enter text", text: $newText, onCommit: {
-                        stickers.append(textToImage(newText))
-                        newText = ""
-                        showTextEditor = false
-                    })
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding()
-                    .background(Color.white.opacity(0.8))
-                    .cornerRadius(8)
-                }
-                
-                if drawingEnabled {
-                    DrawingCanvasView()
+                    Image(frameName)
+                        .resizable()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.clear)
-                }
-            }
-            .padding(.top, 16)
-            
-            Spacer()
-            
-            HStack {
-                HStack(spacing: 8) {
-                    ForEach(PhotoAction.allCases) { action in
-                        Button {
-                            handleAction(action)
-                        } label: {
-                            Image(systemName: action.iconName)
-                                .resizable()
-                                .frame(width: 16, height: 16)
-                                .foregroundColor(.white)
-                                .padding(10)
-                                .background(Color.black.opacity(0.6))
-                                .clipShape(Circle())
+                        .padding(.horizontal, 16)
+                        .clipped()
+                    
+                    ForEach(stickers, id: \.self) { sticker in
+                        StickerView(image: sticker)
+                    }
+                    
+                    if showTextEditor {
+                        TextField("Enter text", text: $newText, onCommit: {
+                            stickers.append(textToImage(newText))
+                            newText = ""
+                            showTextEditor = false
+                        })
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                        .background(Color.white.opacity(0.8))
+                        .cornerRadius(8)
+                    }
+                    
+                    if drawingEnabled {
+                        DrawingCanvasView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.clear)
+                    }
+                    
+                    HStack(alignment: .top) {
+                        Spacer()
+                        VStack(spacing: 8) {
+                            ForEach(PhotoAction.allCases) { action in
+                                Button {
+                                    handleAction(action)
+                                } label: {
+                                    Image(systemName: action.iconName)
+                                        .resizable()
+                                        .frame(width: 16, height: 16)
+                                        .foregroundColor(.white)
+                                        .padding(10)
+                                        .background(Color.black.opacity(0.6))
+                                        .clipShape(Circle())
+                                }
+                            }
                         }
                     }
+                    .padding(.trailing, 16)
                 }
+                .padding(.top, 16)
                 
                 Spacer()
                 
-                Button {
-                    saveImage()
-                    showSavedAlert = true
-                } label: {
-                    Text("Download")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(10)
-                        .background(Color.green.cornerRadius(10))
+                HStack {
+                    Button {
+                        isSelectFrame.toggle()
+                    } label: {
+                        Image(frameModels[selectedFrameIndex].name)
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(.gray, lineWidth: 3)
+                            )
+                    }
+                    
+                    Spacer()
+                    
+                    Button {
+                        saveImage()
+                        showSavedAlert = true
+                    } label: {
+                        Text("Download")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(10)
+                            .background(Color.green.cornerRadius(10))
+                    }
                 }
+                .padding()
             }
-            .padding()
+            if isSelectFrame {
+                FrameSelectView(
+                    selectedFrame: Binding(
+                        get: { frameModels[selectedFrameIndex] },
+                        set: { newValue in
+                            if let newIndex = frameModels.firstIndex(where: { $0.id == newValue.id }) {
+                                selectedFrameIndex = newIndex
+                            }
+                        }
+                    ),
+                    isPresented: $isSelectFrame
+                )
+                .padding(.bottom, 60)
+            }
         }
         .alert("Saved!", isPresented: $showSavedAlert) {
             Button("OK") {
