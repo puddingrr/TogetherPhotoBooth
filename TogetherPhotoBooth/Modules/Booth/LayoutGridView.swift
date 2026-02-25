@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct LayoutGridView: View {
-    let layout: FrameModel
+    let layout: LayoutModel
     let capturedImages: [UIImage]
     let totalHeight: CGFloat = 600
     

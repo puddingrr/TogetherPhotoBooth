@@ -15,16 +15,10 @@ struct BoothView: View {
     @State private var currentSlotIndex = 0
     @State private var goToEditor = false
     
-    @State private var selectedFrameIndex: Int = 0
-    @State private var isSelectFrame = false
+    @State private var selectedLayoutIndex: Int = 0
+    @State private var isSelectLayout = false
     
-    var selectedFrameModel: FrameModel {
-        frameModels[selectedFrameIndex]
-    }
-    
-    var cameraScale: CGFloat {
-        1 / CGFloat(selectedFrameModel.slots)
-    }
+    var selectedLayout: LayoutModel { predefinedLayouts[selectedLayoutIndex] }
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -38,24 +32,26 @@ struct BoothView: View {
                 
                 ZStack(alignment: .topLeading) {
                     
-                    let grid = GridLayout(
-                        slotCount: selectedFrameModel.slots,
-                        totalWidth: UIScreen.main.bounds.width,
-                        totalHeight: 600
-                    )
+                    var currentGrid: GridLayout {
+                        GridLayout(
+                            slotCount: selectedLayout.slots,
+                            totalWidth: UIScreen.main.bounds.width,
+                            totalHeight: 600
+                        )
+                    }
                     
-                    LayoutGridView(layout: selectedFrameModel, capturedImages: capturedImages)
+                    LayoutGridView(layout: selectedLayout, capturedImages: capturedImages)
 
-                    if currentSlotIndex < selectedFrameModel.slots {
-                        let pos = grid.position(for: currentSlotIndex)
-                        
+                    if currentSlotIndex < selectedLayout.slots {
+                        let pos = currentGrid.position(for: currentSlotIndex)
+
                         CameraPreview(manager: camera)
-                            .frame(width: grid.slotWidth, height: grid.slotHeight)
+                            .frame(width: currentGrid.slotWidth, height: currentGrid.slotHeight)
                             .cornerRadius(8)
                             .clipped()
                             .offset(
-                                x: CGFloat(pos.column) * (grid.slotWidth + grid.spacing) + grid.horizontalPadding,
-                                y: CGFloat(pos.row) * (grid.slotHeight + grid.spacing)
+                                x: CGFloat(pos.column) * (currentGrid.slotWidth + currentGrid.spacing) + currentGrid.horizontalPadding,
+                                y: CGFloat(pos.row) * (currentGrid.slotHeight + currentGrid.spacing)
                             )
                             .animation(.easeInOut(duration: 0.3), value: currentSlotIndex)
                     }
@@ -69,9 +65,9 @@ struct BoothView: View {
                 
                 HStack {
                     Button {
-                        isSelectFrame.toggle()
+                        isSelectLayout.toggle()
                     } label: {
-                        Image(frameModels[selectedFrameIndex].name)
+                        Image(predefinedLayouts[selectedLayoutIndex].name)
                             .resizable()
                             .frame(width: 40, height: 40)
                             .cornerRadius(10)
@@ -103,31 +99,26 @@ struct BoothView: View {
                             .frame(width: 70, height: 70)
                             .clipShape(Circle())
                     }
-                    .disabled(currentSlotIndex >= selectedFrameModel.slots)
+                    .disabled(currentSlotIndex >= selectedLayout.slots)
                 }
             }
             
-            if isSelectFrame {
+            if isSelectLayout {
                 LayoutSelectView(
-                    selectedLayout: Binding(
-                        get: { frameModels[selectedFrameIndex] },
-                        set: { newValue in
-                            if let newIndex = frameModels.firstIndex(where: { $0.id == newValue.id }) {
-                                selectedFrameIndex = newIndex
-                                resetSession()
-                            }
-                        }
-                    ),
-                    isPresented: $isSelectFrame
+                    selectedLayout: $selectedLayoutIndex,
+                    isPresented: $isSelectLayout
                 )
                 .padding(.bottom, 70)
+                .onChange(of: selectedLayoutIndex) { _ in
+                    resetSession()
+                }
             }
         }
         .onAppear {
             resetSession()
             camera.startSession()
         }
-        .onChange(of: selectedFrameIndex) { _ in
+        .onChange(of: selectedLayoutIndex) { _ in
             resetSession()
         }
         .onChange(of: camera.capturedImage) { image in
@@ -137,15 +128,15 @@ struct BoothView: View {
             currentSlotIndex += 1
             camera.capturedImage = nil
             
-            if currentSlotIndex >= selectedFrameModel.slots {
+            if currentSlotIndex >= selectedLayout.slots {
                 goToEditor = true
             }
         }
         .navigationDestination(isPresented: $goToEditor) {
             PhotoView(
                 photos: capturedImages.compactMap { $0 },
-                frameName: selectedFrameModel.name,
-                slotCount: selectedFrameModel.slots
+                layoutName: selectedLayout.name,
+                slotCount: selectedLayout.slots
             ) {
                 resetSession()
                 camera.startSession()

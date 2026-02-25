@@ -13,7 +13,7 @@ struct PhotoView: View {
     @StateObject private var camera = CameraManager()
     
     let photos: [UIImage]
-    let frameName: String
+    let layoutName: String
     let slotCount: Int
     let onFinish: () -> Void
     
@@ -76,7 +76,7 @@ struct PhotoView: View {
                     
                     Color.white.opacity(0.1)
                     
-                    Image(frameName)
+                    Image(layoutName)
                         .resizable()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .padding(.horizontal, 8)
@@ -222,38 +222,60 @@ extension PhotoView {
     }
     func saveImage() {
         camera.session.stopRunning()
+        
+        let grid = GridLayout(
+            slotCount: slotCount,
+            totalWidth: UIScreen.main.bounds.width,
+            totalHeight: 600
+        )
+        
         let renderer = ImageRenderer(content:
-        ZStack {
-            if let firstPhoto = photos.first {
-                Image(uiImage: firstPhoto)
-                    .resizable()
-                    .scaledToFill()
-                    .aspectRatio(
-                        UIImage(named: frameName)!.size,
-                        contentMode: .fit
-                    )
-                    .cornerRadius(10)
-                    .clipped()
-                    .padding(10)
+            ZStack {
+                VStack(spacing: grid.spacing) {
+                    ForEach(0..<grid.rows, id: \.self) { row in
+                        HStack(spacing: grid.spacing) {
+                            ForEach(0..<grid.columns, id: \.self) { col in
+                                let index = row * grid.columns + col
+                                if index < slotCount, let img = photos[safe: index] {
+                                    Image(uiImage: img)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: grid.slotWidth, height: grid.slotHeight)
+                                        .clipped()
+                                        .cornerRadius(8)
+                                } else {
+                                    Spacer()
+                                        .frame(width: grid.slotWidth, height: grid.slotHeight)
+                                }
+                            }
+                        }
+                    }
+                }
+                .frame(width: UIScreen.main.bounds.width, height: grid.totalHeight)
+                .padding(.horizontal, grid.horizontalPadding)
+                
+                // Overlay stickers
+                ForEach(stickers, id: \.self) { sticker in
+                    Image(uiImage: sticker)
+                }
+                
+                // Overlay frame image
+                if let frameImage = UIImage(named: layoutName) {
+                    Image(uiImage: frameImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: UIScreen.main.bounds.width, height: grid.totalHeight)
+                        .clipped()
+                }
             }
-            
-            Image(frameName)
-                .resizable()
-                .offset()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .cornerRadius(10)
-                .clipped()
-            
-            ForEach(stickers, id: \.self) { sticker in
-                Image(uiImage: sticker)
-            }
-        }
         )
         
         if let uiImage = renderer.uiImage {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
         }
-        camera.session.startRunning()
+        DispatchQueue.main.async {
+            camera.session.startRunning()
+        }
     }
     func textToImage(_ text: String) -> UIImage {
         let label = UILabel()
