@@ -64,40 +64,23 @@ struct PhotoView: View {
                     
                     Color.white.opacity(0.1)
                     
-                    Image(layout.name)
-                        .resizable()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(.horizontal, 8)
-                        .clipped()
-                    
-                    ForEach(viewModel.stickers, id: \.self) { sticker in
-                        StickerView(image: sticker)
-                    }
-                    
-                    if viewModel.showTextEditor {
-                        TextField("Enter text", text: $viewModel.newText, onCommit: {
-                            viewModel.stickers.append(textToImage(viewModel.newText))
-                            viewModel.newText = ""
-//                            viewModel.showTextEditor = false
-                        })
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding()
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(8)
-                    }
-                    
-                    if viewModel.drawingEnabled {
-                        DrawingCanvasView()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.clear)
-                    }
+//                    Image(layout.name)
+//                        .resizable()
+//                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+//                        .padding(.horizontal, 8)
+//                        .clipped()
                     
                     HStack(alignment: .top) {
                         Spacer()
                         VStack(spacing: 8) {
                             ForEach(PhotoAction.allCases) { action in
                                 Button {
-                                    handleAction(action)
+                                    Utilize.shared.showAlertWithButton(
+                                        title: "Opps!!!",
+                                        message: "Coming Soon...."
+                                    ) { _ in
+                                        isShowAlert = false
+                                    }
                                 } label: {
                                     Image(systemName: action.iconName)
                                         .resizable()
@@ -123,28 +106,35 @@ struct PhotoView: View {
                     } label: {
                         Image(frameModels[viewModel.selectedFrameIndex].name)
                             .resizable()
+                            .padding(4)
                             .frame(width: 40, height: 40)
-                            .cornerRadius(10)
+                            .cornerRadius(5)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(.gray, lineWidth: 3)
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(.greenDark, lineWidth: 2)
                             )
                     }
                     
                     Spacer()
                     
                     Button {
-                        saveImage {
-                            Utilize.shared.showAlert(title: "Succese", message: "Your photo has been saved to your gallery 💖")
-                            dismiss()
-                            onFinish()
+                        Utilize.shared.showAlertWithButton(title: "DownLoad", message: "Save Photo to your gallery?") { btn in
+                            if btn == 1 {
+                                saveImage {
+                                    dismiss()
+                                    onFinish()
+                                }
+                            } else {
+                                dismiss()
+                                onFinish()
+                            }
                         }
                     } label: {
                         Text("Download")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.white)
                             .padding(10)
-                            .background(Color.green.cornerRadius(10))
+                            .background(Color.greenDark.cornerRadius(5))
                     }
                 }
                 .padding()
@@ -158,12 +148,12 @@ struct PhotoView: View {
                                 viewModel.selectedFrameIndex = newIndex
                             }
                         }
-                    ),
-                    isPresented: $viewModel.isSelectFrame
+                    )
                 )
                 .padding(.bottom, 60)
             }
         }
+        .navigationBarBackButtonHidden(true)
         .sheet(isPresented: $viewModel.showStickerSheet) {
             VStack {
                 Text("Select a sticker").font(.headline).padding()

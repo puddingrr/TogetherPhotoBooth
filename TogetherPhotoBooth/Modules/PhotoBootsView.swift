@@ -17,7 +17,7 @@ struct PhotoBootsView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 300, height: 300)
-                .cornerRadius(10)
+                .cornerRadius(20)
 
             Text("Ready to capture some memories together?📸💖")
                 .foregroundColor(.gray)
@@ -35,7 +35,7 @@ struct PhotoBootsView: View {
                         .clipShape(Circle())
                 }
                 .padding(10)
-                .background(Color.blue.opacity(0.5))
+                .background(Color.blueLightBG)
                 .cornerRadius(10)
             }
         }

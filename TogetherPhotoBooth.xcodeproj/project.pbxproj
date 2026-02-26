@@ -271,6 +271,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TogetherPhotoBooth/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Tgt Boots";
 				INFOPLIST_KEY_LSApplicationCategoryType = NSPhotoLibraryAddUsageDescription;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera so you can take beautiful selfie photos with frames and stickers.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need access to save your photo";
@@ -310,6 +311,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TogetherPhotoBooth/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Tgt Boots";
 				INFOPLIST_KEY_LSApplicationCategoryType = NSPhotoLibraryAddUsageDescription;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera so you can take beautiful selfie photos with frames and stickers.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need access to save your photo";

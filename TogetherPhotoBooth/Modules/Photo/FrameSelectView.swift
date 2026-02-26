@@ -10,7 +10,6 @@ struct FrameSelectView: View {
     
     let frames: [FrameModel] = frameModels
     @Binding var selectedFrame: FrameModel
-    @Binding var isPresented: Bool
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -19,18 +18,18 @@ struct FrameSelectView: View {
                 ForEach(frames) { frame in
                     Image(frame.name)
                         .resizable()
+                        .padding(4)
                         .frame(width: 60, height: 100)
                         .cornerRadius(10)
-                        .background(Color.white.cornerRadius(10))
+                        .background(Color.white.cornerRadius(5))
                         .onTapGesture {
                             selectedFrame = frame
-                            isPresented = false 
                         }
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: 5)
                                 .stroke(
                                     selectedFrame.name == frame.name ? Color.gray : Color.clear,
-                                    lineWidth: 3
+                                    lineWidth: 2
                                 )
                         )
                 }
