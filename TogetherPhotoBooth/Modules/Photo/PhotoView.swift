@@ -18,6 +18,7 @@ struct PhotoView: View {
     let onFinish: () -> Void
         
     @Environment(\.dismiss) private var dismiss
+    @State var isShowAlert: Bool = false
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -77,7 +78,7 @@ struct PhotoView: View {
                         TextField("Enter text", text: $viewModel.newText, onCommit: {
                             viewModel.stickers.append(textToImage(viewModel.newText))
                             viewModel.newText = ""
-                            viewModel.showTextEditor = false
+//                            viewModel.showTextEditor = false
                         })
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding()
@@ -133,8 +134,11 @@ struct PhotoView: View {
                     Spacer()
                     
                     Button {
-                        saveImage()
-                        viewModel.showSavedAlert = true
+                        saveImage {
+                            Utilize.shared.showAlert(title: "Succese", message: "Your photo has been saved to your gallery 💖")
+                            dismiss()
+                            onFinish()
+                        }
                     } label: {
                         Text("Download")
                             .font(.system(size: 14, weight: .bold))
@@ -159,14 +163,6 @@ struct PhotoView: View {
                 )
                 .padding(.bottom, 60)
             }
-        }
-        .alert("Saved!", isPresented: $viewModel.showSavedAlert) {
-            Button("OK") {
-                dismiss()
-                onFinish()
-            }
-        } message: {
-            Text("Your photo has been saved to your gallery 💖")
         }
         .sheet(isPresented: $viewModel.showStickerSheet) {
             VStack {
@@ -198,17 +194,22 @@ extension PhotoView {
     func handleAction(_ action: PhotoAction) {
         switch action {
         case .text:
-            viewModel.showTextEditor = true
+            isShowAlert = true
+//            viewModel.showTextEditor = true
         case .sticker:
-            viewModel.showStickerSheet = true
+            isShowAlert = true
+//            viewModel.showStickerSheet = true
         case .draw:
-            viewModel.drawingEnabled.toggle()
+            isShowAlert = true
+//            viewModel.drawingEnabled.toggle()
         case .image:
-            viewModel.showPhotoPicker = true
+            isShowAlert = true
+//            viewModel.showPhotoPicker = true
         }
     }
-    func saveImage() {
-        
+    func saveImage(completion: @escaping () -> Void) {
+        camera.startSession()
+
         let grid = layout.makeGrid(
             totalWidth: UIScreen.main.bounds.width,
             totalHeight: 600
@@ -239,12 +240,10 @@ extension PhotoView {
                 .frame(width: UIScreen.main.bounds.width, height: grid.totalHeight)
                 .padding(.horizontal, grid.horizontalPadding)
                 
-                //stickers
             ForEach(viewModel.stickers, id: \.self) { sticker in
                     Image(uiImage: sticker)
                 }
                 
-                // frame image
             if let frameImage = UIImage(named: layout.name) {
                     Image(uiImage: frameImage)
                         .resizable()
@@ -258,6 +257,11 @@ extension PhotoView {
         
         if let uiImage = renderer.uiImage {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
+        }
+        
+        DispatchQueue.main.async {
+            camera.stopSession()
+            completion()
         }
     }
     func textToImage(_ text: String) -> UIImage {
