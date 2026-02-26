@@ -28,67 +28,74 @@ struct PhotoView: View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 
+                // MARK: Booth + Header
+                let outerPadding: CGFloat = 12
+                let boothBorder: CGFloat = 6
+                let topInset: CGFloat = 30 // space inside booth
+                let screenWidth = UIScreen.main.bounds.width
+                let boothWidth = screenWidth - (outerPadding * 2)
+                let boothHeight = boothWidth * 1.7
+
                 ZStack(alignment: .top) {
-                    let grid = layout.makeGrid(
-                        totalWidth: UIScreen.main.bounds.width,
-                        totalHeight: 600
-                    )
-                    let boothBorder: CGFloat = 6
-                    
-                    RoundedRectangle(cornerRadius: 10)
+
+                    // Booth background / border
+                    RoundedRectangle(cornerRadius: 5)
                         .fill(Color.blue)
                     
                     VStack(spacing: boothBorder) {
+                        // top space inside booth
+                        Spacer().frame(height: topInset)
+
+                        // Image grid
+                        let grid = layout.makeGrid(
+                            totalWidth: boothWidth,
+                            totalHeight: boothHeight - topInset // reduce height for images
+                        )
+                        
+                        VStack(spacing: boothBorder) {
                             ForEach(0..<grid.rows, id: \.self) { row in
                                 HStack(spacing: boothBorder) {
                                     ForEach(0..<grid.columns, id: \.self) { column in
                                         let index = row * grid.columns + column
                                         
-                                        if index < layout.slots {
-                                            if let image = photos[safe: index] {
-                                                Image(uiImage: image)
-                                                    .resizable()
-                                                    .scaledToFill()
-                                                    .frame(
-                                                        width: grid.slotWidth - boothBorder,
-                                                        height: grid.slotHeight - boothBorder
-                                                    )
-                                                    .clipped()
-                                                    .cornerRadius(6)
-                                            }
+                                        if index < layout.slots, let image = photos[safe: index] {
+                                            Image(uiImage: image)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: grid.slotWidth, height: grid.slotHeight)
+                                                .clipped()
+                                                .cornerRadius(6)
+                                        } else {
+                                            Spacer()
+                                                .frame(width: grid.slotWidth, height: grid.slotHeight)
                                         }
                                     }
                                 }
                             }
                         }
-                        .padding(12)
-                        .frame(
-                            width: UIScreen.main.bounds.width,
-                            height: grid.totalHeight
-                        )
-                    
-                    Color.white.opacity(0.1)
-                    
-                    // Image Frame Overlay
-                    if let index = viewModel.selectedFrameIndex,
-                       filteredFrames.indices.contains(index) {
-                        
-                        Image(filteredFrames[index].name)
-                            .resizable()
-                            .frame(
-                                width: UIScreen.main.bounds.width,
-                                height: grid.totalHeight
-                            )
+                        .padding(outerPadding)
                     }
                     
                     // Button Edit photos
                     CustomButtonEditPhotoView(isShowAlert: $isShowAlert)
+                        .padding(.top, 36)
+                    
+                    // Text inside booth
+                    HStack {
+                        Text("Together x Boots")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.leading, 12)
+                        Spacer()
+                    }
+                    .padding(.top, 20)
+                    .frame(height: topInset)
                 }
-                .padding(.horizontal, 12)
-                .frame(height: 600)
-                .padding(.top, 12)
+                .frame(width: boothWidth, height: boothHeight)
+                .padding(.horizontal, outerPadding)
+                .padding(.top, 22)
                 
-                Spacer()
+                Spacer(minLength: 0)
                 
                 HStack {
                     selectFrameBoton
