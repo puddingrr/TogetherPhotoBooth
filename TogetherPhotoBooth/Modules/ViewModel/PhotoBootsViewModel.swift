@@ -35,6 +35,6 @@ class PhotoBootsViewModel: ObservableObject {
     @Published var showPhotoPicker = false
     @Published var drawingEnabled = false
     
-    @Published var selectedFrameIndex: Int = 0
+    @Published var selectedFrameIndex: Int?
     @Published var isSelectFrame = false
 }

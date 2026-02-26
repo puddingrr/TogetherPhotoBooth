@@ -16,9 +16,13 @@ struct PhotoView: View {
     let photos: [UIImage]
     let layout: LayoutModel
     let onFinish: () -> Void
-        
+    
     @Environment(\.dismiss) private var dismiss
     @State var isShowAlert: Bool = false
+    
+    var filteredFrames: [FrameModel] {
+        frameModels.filter { $0.slots == layout.slots }
+    }
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -64,11 +68,15 @@ struct PhotoView: View {
                     
                     Color.white.opacity(0.1)
                     
-//                    Image(layout.name)
-//                        .resizable()
-//                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                        .padding(.horizontal, 8)
-//                        .clipped()
+                    if let index = viewModel.selectedFrameIndex,
+                       filteredFrames.indices.contains(index) {
+                        
+                        Image(filteredFrames[index].name)
+                            .resizable()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.horizontal, 8)
+                            .clipped()
+                    }
                     
                     HStack(alignment: .top) {
                         Spacer()
@@ -104,7 +112,7 @@ struct PhotoView: View {
                     Button {
                         viewModel.isSelectFrame.toggle()
                     } label: {
-                        Image(frameModels[viewModel.selectedFrameIndex].name)
+                        Image(.frameBTN)
                             .resizable()
                             .padding(4)
                             .frame(width: 40, height: 40)
@@ -121,6 +129,7 @@ struct PhotoView: View {
                         Utilize.shared.showAlertWithButton(title: "DownLoad", message: "Save Photo to your gallery?") { btn in
                             if btn == 1 {
                                 saveImage {
+                                    viewModel.selectedFrameIndex = nil
                                     dismiss()
                                     onFinish()
                                 }
@@ -141,16 +150,10 @@ struct PhotoView: View {
             }
             if viewModel.isSelectFrame {
                 FrameSelectView(
-                    selectedFrame: Binding(
-                        get: { frameModels[viewModel.selectedFrameIndex] },
-                        set: { newValue in
-                            if let newIndex = frameModels.firstIndex(where: { $0.id == newValue.id }) {
-                                viewModel.selectedFrameIndex = newIndex
-                            }
-                        }
-                    )
+                    frames: filteredFrames,
+                    selectedFrame: $viewModel.selectedFrameIndex
                 )
-                .padding(.bottom, 60)
+                .padding(.bottom, 70)
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -185,64 +188,65 @@ extension PhotoView {
         switch action {
         case .text:
             isShowAlert = true
-//            viewModel.showTextEditor = true
+            //            viewModel.showTextEditor = true
         case .sticker:
             isShowAlert = true
-//            viewModel.showStickerSheet = true
+            //            viewModel.showStickerSheet = true
         case .draw:
             isShowAlert = true
-//            viewModel.drawingEnabled.toggle()
+            //            viewModel.drawingEnabled.toggle()
         case .image:
             isShowAlert = true
-//            viewModel.showPhotoPicker = true
+            //            viewModel.showPhotoPicker = true
         }
     }
     func saveImage(completion: @escaping () -> Void) {
         camera.startSession()
-
+        
         let grid = layout.makeGrid(
             totalWidth: UIScreen.main.bounds.width,
             totalHeight: 600
         )
         
         let renderer = ImageRenderer(content:
-            ZStack {
-                VStack(spacing: grid.spacing) {
-                    ForEach(0..<grid.rows, id: \.self) { row in
-                        HStack(spacing: grid.spacing) {
-                            ForEach(0..<grid.columns, id: \.self) { col in
-                                let index = row * grid.columns + col
-                                if index < layout.slots, let img = photos[safe: index] {
-                                    Image(uiImage: img)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: grid.slotWidth, height: grid.slotHeight)
-                                        .clipped()
-                                        .cornerRadius(8)
-                                } else {
-                                    Spacer()
-                                        .frame(width: grid.slotWidth, height: grid.slotHeight)
-                                }
+                                        ZStack {
+            VStack(spacing: grid.spacing) {
+                ForEach(0..<grid.rows, id: \.self) { row in
+                    HStack(spacing: grid.spacing) {
+                        ForEach(0..<grid.columns, id: \.self) { col in
+                            let index = row * grid.columns + col
+                            if index < layout.slots, let img = photos[safe: index] {
+                                Image(uiImage: img)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: grid.slotWidth, height: grid.slotHeight)
+                                    .clipped()
+                                    .cornerRadius(8)
+                            } else {
+                                Spacer()
+                                    .frame(width: grid.slotWidth, height: grid.slotHeight)
                             }
                         }
                     }
                 }
-                .frame(width: UIScreen.main.bounds.width, height: grid.totalHeight)
-                .padding(.horizontal, grid.horizontalPadding)
-                
-            ForEach(viewModel.stickers, id: \.self) { sticker in
-                    Image(uiImage: sticker)
-                }
-                
-            if let frameImage = UIImage(named: layout.name) {
-                    Image(uiImage: frameImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: UIScreen.main.bounds.width, height: grid.totalHeight)
-                        .clipped()
-                }
-            Color.white.opacity(0.1)
             }
+            .frame(width: UIScreen.main.bounds.width, height: grid.totalHeight)
+            .padding(.horizontal, grid.horizontalPadding)
+            
+            ForEach(viewModel.stickers, id: \.self) { sticker in
+                Image(uiImage: sticker)
+            }
+            
+            if let index = viewModel.selectedFrameIndex {
+                Image(frameModels[index].name)
+                    .resizable()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, 8)
+                    .clipped()
+            }
+            
+            Color.white.opacity(0.1)
+        }
         )
         
         if let uiImage = renderer.uiImage {

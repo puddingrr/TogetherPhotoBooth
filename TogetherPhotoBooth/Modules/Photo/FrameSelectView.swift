@@ -8,27 +8,31 @@ import SwiftUI
 
 struct FrameSelectView: View {
     
-    let frames: [FrameModel] = frameModels
-    @Binding var selectedFrame: FrameModel
+    let frames: [FrameModel]
+    @Binding var selectedFrame: Int?
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack {
                 
-                ForEach(frames) { frame in
-                    Image(frame.name)
+                ForEach(frames.indices, id: \.self) { i in
+                    Image(frames[i].name)
                         .resizable()
                         .padding(4)
                         .frame(width: 60, height: 100)
                         .cornerRadius(10)
                         .background(Color.white.cornerRadius(5))
                         .onTapGesture {
-                            selectedFrame = frame
+                            if selectedFrame == i {
+                                selectedFrame = nil 
+                            } else {
+                                selectedFrame = i
+                            }
                         }
                         .overlay(
                             RoundedRectangle(cornerRadius: 5)
                                 .stroke(
-                                    selectedFrame.name == frame.name ? Color.gray : Color.clear,
+                                    selectedFrame == i ? Color.gray : Color.clear,
                                     lineWidth: 2
                                 )
                         )
@@ -39,16 +43,15 @@ struct FrameSelectView: View {
     }
 }
 
-struct FrameModel: Identifiable {
-    let id: Int
+struct FrameModel {
     let name: String
     let slots: Int
 }
 
 let frameModels: [FrameModel] = [
-    FrameModel(id: 1, name: "frame1", slots: 1),
-    FrameModel(id: 2, name: "frame2", slots: 2),
-    FrameModel(id: 3, name: "frame3", slots: 3),
-    FrameModel(id: 4, name: "frame4", slots: 4),
-    FrameModel(id: 5, name: "frame6", slots: 6)
+    .init(name: "frame1", slots: 1),
+    .init(name: "frame2", slots: 2),
+    .init(name: "frame3", slots: 3),
+    .init(name: "frame4", slots: 4),
+    .init(name: "frame6", slots: 6)
 ]
