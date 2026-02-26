@@ -142,7 +142,7 @@ struct BoothView: View {
         }
         .navigationDestination(isPresented: $goToEditor) {
             PhotoView(
-                viewModel: viewModel,
+                viewModel: viewModel, camera: camera,
                 photos: viewModel.capturedImages.compactMap { $0 },
                 layout: selectedLayout
             ) {

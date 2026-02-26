@@ -30,3 +30,31 @@ struct StickerView: View {
             )
     }
 }
+
+struct CustomSheetSelectSticker: View {
+    @Binding var showStickerSheet: Bool
+    @Binding var stickers: [UIImage]
+    var body: some View {
+        VStack {
+            Text("Select a sticker").font(.headline).padding()
+            ScrollView(.horizontal) {
+                HStack {
+                    ForEach(["sticker1","sticker2","sticker3"], id: \.self) { name in
+                        Image(name)
+                            .resizable()
+                            .frame(width: 60, height: 60)
+                            .onTapGesture {
+                                if let img = UIImage(named: name) {
+                                    stickers.append(img)
+                                }
+                                showStickerSheet = false
+                            }
+                    }
+                }
+                .padding()
+            }
+            Button("Close") { showStickerSheet = false }
+                .padding()
+        }
+    }
+}
