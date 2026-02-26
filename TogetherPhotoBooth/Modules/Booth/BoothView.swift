@@ -15,6 +15,7 @@ struct BoothView: View {
     @State var goToEditor = false
     
     var selectedLayout: LayoutModel { predefinedLayouts[viewModel.selectedLayoutIndex] }
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -25,12 +26,15 @@ struct BoothView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(height: 50)
+                    .onTapGesture {
+                        dismiss()
+                    }
                 
                 ZStack(alignment: .topLeading) {
                     
                     var currentGrid: GridLayout {
                         GridLayout(
-                            slotCount: selectedLayout.slots,
+                            layout: selectedLayout,
                             totalWidth: UIScreen.main.bounds.width,
                             totalHeight: 600
                         )
@@ -59,18 +63,26 @@ struct BoothView: View {
                 
                 Spacer()
                 
-                HStack {
+                HStack(alignment: .bottom) {
                     Button {
                         viewModel.isSelectLayout.toggle()
                     } label: {
-                        Image(predefinedLayouts[viewModel.selectedLayoutIndex].name)
-                            .resizable()
-                            .frame(width: 40, height: 40)
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(.gray, lineWidth: 3)
-                            )
+                        VStack(spacing: 3) {
+                            LayoutPreviewView(layout: predefinedLayouts[viewModel.selectedLayoutIndex])
+                                .frame(width: 35, height: 35)
+                                .padding(6)
+                                .background(Color.white)
+                                .cornerRadius(5)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .stroke(Color.gray ,lineWidth: 2)
+                                )
+                            
+                            Text((viewModel.selectedLayoutIndex != 0) ? predefinedLayouts[viewModel.selectedLayoutIndex].name : "Frame")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                        }
+                        
                     }
                     Spacer()
                     
@@ -132,8 +144,7 @@ struct BoothView: View {
             PhotoView(
                 viewModel: viewModel,
                 photos: viewModel.capturedImages.compactMap { $0 },
-                layoutName: selectedLayout.name,
-                slotCount: selectedLayout.slots
+                layout: selectedLayout
             ) {
                 viewModel.resetSession()
                 camera.startSession()

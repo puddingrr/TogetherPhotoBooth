@@ -14,8 +14,7 @@ struct PhotoView: View {
     @StateObject private var camera = CameraManager()
     
     let photos: [UIImage]
-    let layoutName: String
-    let slotCount: Int
+    let layout: LayoutModel
     let onFinish: () -> Void
         
     @Environment(\.dismiss) private var dismiss
@@ -25,19 +24,18 @@ struct PhotoView: View {
             VStack(spacing: 0) {
                 
                 ZStack(alignment: .top) {
-                    let grid = GridLayout(
-                        slotCount: slotCount,
+                    let grid = layout.makeGrid(
                         totalWidth: UIScreen.main.bounds.width,
                         totalHeight: 600
                     )
-
+                    
                     VStack(spacing: grid.spacing) {
                         ForEach(0..<grid.rows, id: \.self) { row in
                             HStack(spacing: grid.spacing) {
                                 ForEach(0..<grid.columns, id: \.self) { column in
                                     let index = row * grid.columns + column
                                     
-                                    if index < slotCount {
+                                    if index < layout.slots {
                                         ZStack {
                                             Rectangle()
                                                 .fill(Color.gray.opacity(0.1))
@@ -65,7 +63,7 @@ struct PhotoView: View {
                     
                     Color.white.opacity(0.1)
                     
-                    Image(layoutName)
+                    Image(layout.name)
                         .resizable()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .padding(.horizontal, 8)
@@ -210,10 +208,8 @@ extension PhotoView {
         }
     }
     func saveImage() {
-        camera.session.stopRunning()
         
-        let grid = GridLayout(
-            slotCount: slotCount,
+        let grid = layout.makeGrid(
             totalWidth: UIScreen.main.bounds.width,
             totalHeight: 600
         )
@@ -225,7 +221,7 @@ extension PhotoView {
                         HStack(spacing: grid.spacing) {
                             ForEach(0..<grid.columns, id: \.self) { col in
                                 let index = row * grid.columns + col
-                                if index < slotCount, let img = photos[safe: index] {
+                                if index < layout.slots, let img = photos[safe: index] {
                                     Image(uiImage: img)
                                         .resizable()
                                         .scaledToFill()
@@ -249,21 +245,19 @@ extension PhotoView {
                 }
                 
                 // frame image
-                if let frameImage = UIImage(named: layoutName) {
+            if let frameImage = UIImage(named: layout.name) {
                     Image(uiImage: frameImage)
                         .resizable()
                         .scaledToFill()
                         .frame(width: UIScreen.main.bounds.width, height: grid.totalHeight)
                         .clipped()
                 }
+            Color.white.opacity(0.1)
             }
         )
         
         if let uiImage = renderer.uiImage {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
-        }
-        DispatchQueue.main.async {
-            camera.session.startRunning()
         }
     }
     func textToImage(_ text: String) -> UIImage {

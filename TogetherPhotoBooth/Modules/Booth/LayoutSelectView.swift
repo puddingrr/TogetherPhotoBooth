@@ -40,19 +40,19 @@ struct LayoutSelectView: View {
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 4) {
+            HStack(spacing: 8) {
                 ForEach(layouts.indices, id: \.self) { i in
-                    VStack(spacing: 8) {
-                        layoutPreview(layout: layouts[i])
+                    VStack(spacing: 4) {
+                        LayoutPreviewView(layout: layouts[i])
                             .frame(width: 60, height: 40)
                             .padding(6)
-                            .background(Color.white)
-                            .cornerRadius(12)
+                            .background(Color.main)
+                            .cornerRadius(6)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 12)
+                                RoundedRectangle(cornerRadius: 6)
                                     .stroke(
                                         selectedLayout == i ? Color.gray : Color.clear,
-                                        lineWidth: 3
+                                        lineWidth: 2
                                     )
                             )
                         
@@ -69,45 +69,49 @@ struct LayoutSelectView: View {
             .padding()
         }
     }
-    
-    @ViewBuilder
-    func layoutPreview(layout: LayoutModel) -> some View {
-        switch layout.style {
-        case .vertical:
-            VStack(spacing: 4) {
-                ForEach(0..<layout.slots, id: \.self) { _ in
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .cornerRadius(3)
+}
+
+struct LayoutPreviewView: View {
+    let layout: LayoutModel
+    var body: some View {
+        Group {
+            switch layout.style {
+            case .vertical:
+                VStack(spacing: 4) {
+                    ForEach(0..<layout.slots, id: \.self) { _ in
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .cornerRadius(3)
+                    }
                 }
-            }
-        case .horizontal:
-            HStack(spacing: 4) {
-                ForEach(0..<layout.slots, id: \.self) { _ in
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .cornerRadius(3)
+            case .horizontal:
+                HStack(spacing: 4) {
+                    ForEach(0..<layout.slots, id: \.self) { _ in
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .cornerRadius(3)
+                    }
                 }
-            }
-        case .grid(let columns):
-            let rows = Int(ceil(Double(layout.slots) / Double(columns)))
-            VStack(spacing: 4) {
-                ForEach(0..<rows, id: \.self) { rowIndex in
-                    HStack(spacing: 4) {
-                        ForEach(0..<columns, id: \.self) { colIndex in
-                            let slotIndex = rowIndex * columns + colIndex
-                            Rectangle()
-                                .fill(slotIndex < layout.slots ? Color.gray.opacity(0.2) : Color.clear)
-                                .cornerRadius(3)
+            case .grid(let columns):
+                let rows = Int(ceil(Double(layout.slots) / Double(columns)))
+                VStack(spacing: 4) {
+                    ForEach(0..<rows, id: \.self) { rowIndex in
+                        HStack(spacing: 4) {
+                            ForEach(0..<columns, id: \.self) { colIndex in
+                                let slotIndex = rowIndex * columns + colIndex
+                                Rectangle()
+                                    .fill(slotIndex < layout.slots ? Color.gray.opacity(0.2) : Color.clear)
+                                    .cornerRadius(3)
+                            }
                         }
                     }
                 }
-            }
-        case .custom:
-            ZStack {
-                Text("Custom")
-                    .font(.caption2)
-                    .foregroundColor(.gray)
+            case .custom:
+                ZStack {
+                    Text("Custom")
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                }
             }
         }
     }

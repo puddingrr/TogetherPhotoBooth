@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+extension LayoutModel {
+    func makeGrid(totalWidth: CGFloat, totalHeight: CGFloat) -> GridLayout {
+        GridLayout(layout: self, totalWidth: totalWidth, totalHeight: totalHeight)
+    }
+}
+
 struct LayoutGridView: View {
     let layout: LayoutModel
     let capturedImages: [UIImage]
@@ -14,7 +20,7 @@ struct LayoutGridView: View {
     
     var body: some View {
         let grid = GridLayout(
-            slotCount: layout.slots,
+            layout: layout,
             totalWidth: UIScreen.main.bounds.width,
             totalHeight: totalHeight
         )
@@ -54,20 +60,43 @@ struct LayoutGridView: View {
 }
 
 struct GridLayout {
-    let slotCount: Int
+    let layout: LayoutModel
     let totalWidth: CGFloat
     let totalHeight: CGFloat
+    
     let horizontalPadding: CGFloat = 8
     let spacing: CGFloat = 4
     
     var columns: Int {
-        if slotCount <= 3 { return 1 }
-        else if slotCount == 4 { return 2 }
-        else { return 3 }
+        switch layout.style {
+        case .vertical:
+            return 1
+            
+        case .horizontal:
+            return layout.slots
+            
+        case .grid(let columns):
+            return columns
+            
+        case .custom:
+            return 1
+        }
     }
     
     var rows: Int {
-        Int(ceil(Double(slotCount) / Double(columns)))
+        switch layout.style {
+        case .horizontal:
+            return 1
+            
+        case .vertical:
+            return layout.slots
+            
+        case .grid:
+            return Int(ceil(Double(layout.slots) / Double(columns)))
+            
+        case .custom:
+            return 1
+        }
     }
     
     var slotWidth: CGFloat {
