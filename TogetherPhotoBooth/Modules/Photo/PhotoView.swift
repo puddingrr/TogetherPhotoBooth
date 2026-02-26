@@ -136,6 +136,7 @@ struct PhotoView: View {
                             } else {
                                 dismiss()
                                 onFinish()
+                                viewModel.selectedFrameIndex = nil
                             }
                         }
                     } label: {
