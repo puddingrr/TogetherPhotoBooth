@@ -23,7 +23,8 @@ struct PhotoView: View {
     var filteredFrames: [FrameModel] {
         frameModels.filter { $0.slots == layout.slots }
     }
-    
+    @State var selectedFrameColor: UIFrameColor? = nil
+    @State var isSelectedFrameColor: Bool = false
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
@@ -40,7 +41,7 @@ struct PhotoView: View {
 
                     // Booth background / border
                     RoundedRectangle(cornerRadius: 5)
-                        .fill(Color.blue)
+                        .fill(selectedFrameColor?.color.opacity(0.3) ?? Color.gray.opacity(0.1))
                     
                     VStack(spacing: boothBorder) {
                         // top space inside booth
@@ -75,6 +76,7 @@ struct PhotoView: View {
                         }
                         .padding(outerPadding)
                     }
+                    Color.white.opacity(0.1)
                     
                     // Button Edit photos
                     CustomButtonEditPhotoView(isShowAlert: $isShowAlert)
@@ -84,7 +86,7 @@ struct PhotoView: View {
                     HStack {
                         Text("Together x Boots")
                             .font(.headline)
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                             .padding(.leading, 12)
                         Spacer()
                     }
@@ -98,7 +100,8 @@ struct PhotoView: View {
                 Spacer(minLength: 0)
                 
                 HStack {
-                    selectFrameBoton
+                    selectFrameButon
+                    selectColorFrameButon
                     Spacer()
                     downloadButto
                 }
@@ -110,6 +113,9 @@ struct PhotoView: View {
                     selectedFrame: $viewModel.selectedFrameIndex
                 )
                 .padding(.bottom, 70)
+            }
+            if isSelectedFrameColor {
+                selectedColorUIView
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -143,20 +149,86 @@ extension PhotoView {
         }
     }
     
-    var selectFrameBoton: some View {
+    var selectFrameButon: some View {
         Button {
             viewModel.isSelectFrame.toggle()
+            if viewModel.isSelectFrame {
+                isSelectedFrameColor = false
+            }
         } label: {
-            Image(.frameBTN)
-                .resizable()
-                .padding(4)
-                .frame(width: 40, height: 40)
-                .cornerRadius(5)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 5)
-                        .stroke(.greenDark, lineWidth: 2)
-                )
+            VStack {
+                Image(.frameBTN)
+                    .resizable()
+                    .padding(4)
+                    .frame(width: 40, height: 40)
+                    .cornerRadius(5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(.greenDark, lineWidth: 2)
+                    )
+                Text("Frame")
+                    .font(.caption2)
+                    .foregroundColor(.gray)
+            }
         }
+    }
+    
+    var selectColorFrameButon: some View {
+        Button {
+            isSelectedFrameColor.toggle()
+            if isSelectedFrameColor {
+                viewModel.isSelectFrame = false
+            }
+        } label: {
+            VStack {
+                Image(.frameBTN)
+                    .resizable()
+                    .padding(4)
+                    .frame(width: 40, height: 40)
+                    .cornerRadius(5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(.greenDark, lineWidth: 2)
+                    )
+                Text("Color")
+                    .font(.caption2)
+                    .foregroundColor(.gray)
+            }
+        }
+    }
+    
+    var selectedColorUIView: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 16) {
+                ForEach(UIFrameColor.allCases, id: \.self) { item in
+                    Circle()
+                        .fill(item.color)
+                        .frame(width: 30, height: 30)
+                        .overlay(
+                            ZStack {
+                                // Outer highlight ring
+                                Circle()
+                                    .stroke(selectedFrameColor == item ? item.color : Color.clear, lineWidth: 3)
+                                    .frame(width: 40, height: 40)
+                                
+                                // Inner white ring
+                                Circle()
+                                    .stroke(selectedFrameColor == item ? item.color : Color.clear, lineWidth: 2)
+                            }
+                        )
+                        .contentShape(Circle()) // better tap area
+                        .onTapGesture {
+                            selectedFrameColor = (selectedFrameColor == item) ? nil : item
+                        }
+                }
+            }
+            .padding(16)
+//            .overlay(
+//                RoundedRectangle(cornerRadius: 10)
+//                    .stroke(.gray, lineWidth: 2)
+//            )
+        }
+        .padding(.bottom, 100)
     }
     
     func saveImage(completion: @escaping () -> Void) {

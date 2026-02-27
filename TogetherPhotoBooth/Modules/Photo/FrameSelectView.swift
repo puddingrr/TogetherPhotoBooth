@@ -55,3 +55,17 @@ let frameModels: [FrameModel] = [
     .init(name: "frame4", slots: 4),
     .init(name: "frame6", slots: 6)
 ]
+
+enum UIFrameColor: String, CaseIterable, Equatable {
+    case red, yellow, purple, green, blue
+    
+    var color: Color {
+        switch self {
+        case .blue:   return .blue
+        case .red:    return .red
+        case .green:  return .green
+        case .purple: return .purple
+        case .yellow:   return .yellow
+        }
+    }
+}
