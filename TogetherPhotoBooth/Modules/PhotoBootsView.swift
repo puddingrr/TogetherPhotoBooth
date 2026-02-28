@@ -13,32 +13,79 @@ struct PhotoBootsView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            Image(.welcomeScreen)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 300, height: 300)
-                .cornerRadius(20)
-
-            Text("Ready to capture some memories together?📸💖")
-                .foregroundColor(.gray)
+            TextSwiftUI(title: "📸 Together x Booth", size: 36, weight: .bold)
+            TextSwiftUI(title: "Create cute collage!!", size: 14, color: .gray)
             
-            Button {
-                isNavToBoots = true
-            } label: {
-                HStack {
-                    Text("Capture today, treasure forever!")
-                        .foregroundColor(.white)
-                    Image("captureBotton")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 20, height: 20)
-                        .clipShape(Circle())
+            Spacer(minLength: 0)
+            
+            VStack(spacing: 24) {
+                Button {
+                    isNavToBoots = true
+                } label: {
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .frame(width: 80, height: 80)
+                                .foregroundColor(.pinkLight.opacity(0.4))
+                            Image(systemName: "camera.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 34, height: 34)
+                                .foregroundColor(.pink.opacity(0.4))
+                        }
+                        VStack(spacing: 5) {
+                            TextSwiftUI(title: "Take Photos", size: 22, weight: .bold)
+                            TextSwiftUI(title: "Auto-capture 4 shots", size: 14, color: .gray)
+                        }
+                    }
+                    .padding(32)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(.pinkLight, lineWidth: 2)
+                    )
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
+                    
                 }
-                .padding(10)
-                .background(Color.blueLightBG)
-                .cornerRadius(10)
+                
+                Button {
+                    
+                } label: {
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .frame(width: 80, height: 80)
+                                .foregroundColor(.bluesky.opacity(0.4))
+                            Image(systemName: "photo.on.rectangle.angled")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 34, height: 34)
+                                .foregroundColor(.blue.opacity(0.4))
+                        }
+                        
+                        VStack(spacing: 5) {
+                            TextSwiftUI(title: "Upload Photos", size: 22, weight: .bold)
+                            TextSwiftUI(title: "Choose up to 4 photos", size: 14, color: .gray)
+                        }
+                    }
+                    .padding(32)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(.bluesky, lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
+                }
             }
+            
+            Spacer(minLength: 0)
+            TextSwiftUI(title: "Korean-style photo booth", size: 14, color: .gray)
         }
+        .padding(16)
         .navigationDestination(isPresented: $isNavToBoots) {
             BoothView()
         }
