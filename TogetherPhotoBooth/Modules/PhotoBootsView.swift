@@ -10,6 +10,7 @@ import SwiftUI
 struct PhotoBootsView: View {
     
     @State private var isNavToBoots: Bool = false
+    @State private var isNavTo4Shot: Bool = false
     
     var body: some View {
         VStack(spacing: 16) {
@@ -20,7 +21,7 @@ struct PhotoBootsView: View {
             
             VStack(spacing: 24) {
                 Button {
-                    isNavToBoots = true
+                    isNavTo4Shot = true
                 } label: {
                     VStack(spacing: 20) {
                         ZStack {
@@ -86,8 +87,8 @@ struct PhotoBootsView: View {
             TextSwiftUI(title: "Korean-style photo booth", size: 14, color: .gray)
         }
         .padding(16)
-        .navigationDestination(isPresented: $isNavToBoots) {
-            BoothView()
+        .navigationDestination(isPresented: $isNavTo4Shot) {
+            AutoCapture4ShotView()
         }
     }
 }
