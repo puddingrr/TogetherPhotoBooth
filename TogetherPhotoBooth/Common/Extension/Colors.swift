@@ -7,6 +7,13 @@
 import SwiftUI
 
 extension Color {
+    
+    static let UpdatePhotosBgGredient = LinearGradient(
+        gradient: Gradient(colors: [Color(hex: "E5F0FE"), Color(hex: "FBE8F9")]),
+        startPoint: .top,
+        endPoint: .bottom
+    )
+    
     init(hex: String) {
         let scanner = Scanner(string: hex)
         var rgbValue: UInt64 = 0
