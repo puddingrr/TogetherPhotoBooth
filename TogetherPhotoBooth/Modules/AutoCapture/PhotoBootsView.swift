@@ -11,6 +11,7 @@ struct PhotoBootsView: View {
     
     @State private var isNavToBoots: Bool = false
     @State private var isNavTo4Shot: Bool = false
+    @State private var isNavUploadPhoto: Bool = false
     
     var body: some View {
         VStack(spacing: 16) {
@@ -89,6 +90,9 @@ struct PhotoBootsView: View {
         .padding(16)
         .navigationDestination(isPresented: $isNavTo4Shot) {
             AutoCapture4ShotView()
+        }
+        .navigationDestination(isPresented: $isNavUploadPhoto) {
+//            UploadPhotoView(images: nil, onRetake: <#([UIImage]) -> Void#>)
         }
     }
 }
