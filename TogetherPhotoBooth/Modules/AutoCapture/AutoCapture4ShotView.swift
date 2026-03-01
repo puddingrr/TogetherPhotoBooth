@@ -72,16 +72,11 @@ struct AutoCapture4ShotView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 16))
                                 .padding(.top, 5)
                         }
-                    } else {
-                        HStack {
-                            TextSwiftUI(title: "\(countdown)", size: 80, color: .white)
-                            Spacer()
-                        }
                     }
                     
                     Spacer(minLength: 0)
                     
-                    // MARK: -  images taken
+                    // MARK: -  images shape Count
                     if isCapturing {
                         HStack {
                             Spacer()
@@ -89,16 +84,26 @@ struct AutoCapture4ShotView: View {
                                 ForEach(0..<4, id: \.self) { index in
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.white.opacity(0.6), lineWidth: 2)
-                                            .frame(width: 60, height: 80)
-                                            .background(Color.black.opacity(0.2).cornerRadius(10))
+                                            .stroke(Color.white.opacity(0.6),
+                                                    style: StrokeStyle(lineWidth: 2,dash: [8]))
+                                            .frame(width: 60, height: 70)
+                                            .background(Color.white.opacity(0.2).cornerRadius(10))
                                         
                                         if index < camera.capturedImages.count {
-                                            Image(uiImage: camera.capturedImages[index])
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 60, height: 80)
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+//                                            Image(uiImage: camera.capturedImages[index])
+//                                                .resizable()
+//                                                .scaledToFill()
+//                                                .frame(width: 60, height: 70)
+//                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color.pinkUI, lineWidth: 2)
+                                                .frame(width: 60, height: 70)
+                                                .background(Color.pinkUI.cornerRadius(10))
+                                                .overlay {
+                                                    Text("\(index+1)")
+                                                        .foregroundColor(.white)
+                                                        .font(.system(size: 20, weight: .bold))
+                                                }
                                         } else {
                                             Text("\(index+1)")
                                                 .foregroundColor(.white.opacity(0.6))
@@ -109,10 +114,21 @@ struct AutoCapture4ShotView: View {
                             }
                         }
                         .padding(.trailing, -12)
+                        .padding(.top, -30)
                         
                         Spacer(minLength: 0)
                     }
                     
+                    // MARK: -  count time
+//                    HStack {
+//                        Spacer()
+//                        TextSwiftUI(title: "\(countdown)", size: 24, color: .pinkUI)
+//                        Spacer()
+//                    }
+                    if isCapturing {
+                        TextSwiftUI(title: "\(countdown)", size: 32, color: .pinkUI, weight: .bold)
+                    }
+
                     // MARK: -  capture Button
                     Button {
                         if !isCapturing {
@@ -130,7 +146,7 @@ struct AutoCapture4ShotView: View {
                                 .padding(16)
                                 .background(
                                     Circle()
-                                        .fill(Color(hex: "C56E92"))
+                                        .fill(Color.pinkUI)
                                 )
                                 .overlay(
                                     Circle()
@@ -139,8 +155,8 @@ struct AutoCapture4ShotView: View {
                                 )
                         }
                     }
-                    if !isCapturing && !isFinishedCapturing {
-                        TextSwiftUI(title: "Tap to start!", color: .white)
+                    if !isFinishedCapturing {
+                        TextSwiftUI(title: isCapturing ? "Tap to stop!" : "Tap to start!", color: .white)
                             .padding(10)
                             .background(Color.black.opacity(0.4))
                             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -150,6 +166,7 @@ struct AutoCapture4ShotView: View {
                 .padding(32)
                 .padding(.vertical, 22)
             }
+            // MARK: -  LoadingView
             if isFinishedCapturing {
                 LoadingUI()
             }
@@ -166,21 +183,25 @@ struct AutoCapture4ShotView: View {
         }
         .navigationDestination(isPresented: $isNavUploadPhoto) {
             if !camera.capturedImages.isEmpty {
-                UploadPhotoView(images: camera.capturedImages)
+                UploadPhotoView(
+                    images: camera.capturedImages) { newImages in
+                    camera.capturedImages = newImages
+                    if newImages.count < 4 {
+                        isCapturing = false
+                        isFinishedCapturing = false
+                    }
+
+                }
             }
         }
     }
 }
-
+// MARK: -  func
 extension AutoCapture4ShotView {
     func startAutoCapture() {
-        
         if isCapturing { return }
-        
         isCapturing = true
-        shotIndex = 0
-        camera.capturedImages = []
-        
+        shotIndex = camera.capturedImages.count
         startCountdown()
         print("Auto capture Start!!!")
     }
@@ -193,35 +214,38 @@ extension AutoCapture4ShotView {
     }
     
     func startCountdown() {
+
         countdown = 3
-        
         countdownTimer?.invalidate()
-        
         countdownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
-            
+
+            if !isCapturing {
+                timer.invalidate()
+                countdownTimer = nil
+                return
+            }
+
             if countdown > 1 {
                 countdown -= 1
             } else {
                 timer.invalidate()
                 countdownTimer = nil
-                
+                if !isCapturing { return }
                 camera.capturePhoto()
-                
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+
+                    if !isCapturing { return }
                     if let img = camera.capturedImage {
                         camera.capturedImages.append(img)
                     }
-                    
-                    shotIndex += 1
-                    
-                    if shotIndex < 4 && isCapturing {
+
+                    if camera.capturedImages.count < 4 && isCapturing {
                         startCountdown()
-                    } else {
+                    } else if isCapturing {
+
                         isCapturing = false
                         isFinishedCapturing = true
-                        
-                        print("DONE 4 shots")
-                        
+
                         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                             isFinishedCapturing = false
                             isNavUploadPhoto = true
