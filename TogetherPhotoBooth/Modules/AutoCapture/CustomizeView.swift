@@ -20,6 +20,11 @@ struct CustomizeView: View {
         .init(icon: "wand.and.sparkles", title: "Filters", color: Color(hex: "9C728C"), background: .pinkUI.opacity(0.5))
     ]
     
+    let categories = [
+        StickerCategory(title: "Cat", stickers: [.cat].repeated(count: 10)),
+        StickerCategory(title: "Heart",stickers: [.cat].repeated(count: 10))
+    ]
+    
     var body: some View {
         ZStack(alignment: .bottom) {
             Color(hex: "EDDDE8").opacity(0.3).ignoresSafeArea()
@@ -85,7 +90,7 @@ struct CustomizeView: View {
                         TabView(selection: $selectTabIndex) {
                             BackgorundUI()
                                 .tag(0)
-                            StickerUI()
+                            StickerUI(categories: categories)
                                 .tag(1)
                             FiltersUI()
                                 .tag(2)
