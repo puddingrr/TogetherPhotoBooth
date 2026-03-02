@@ -53,7 +53,7 @@ struct PhotoBootsView: View {
                 }
                 
                 Button {
-                    
+                    isNavUploadPhoto = true
                 } label: {
                     VStack(spacing: 20) {
                         ZStack {
@@ -92,7 +92,8 @@ struct PhotoBootsView: View {
             AutoCapture4ShotView()
         }
         .navigationDestination(isPresented: $isNavUploadPhoto) {
-//            UploadPhotoView(images: nil, onRetake: <#([UIImage]) -> Void#>)
+            //            UploadPhotoView(images: nil, onRetake: ([UIImage]) -> Void)
+                        CustomizeView()
         }
     }
 }

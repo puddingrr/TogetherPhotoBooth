@@ -9,13 +9,21 @@ import SwiftUI
 
 struct CustomizeView: View {
     
-    @State var images: [UIImage]
+    //    @State var images: [UIImage]
+    @State private var selectTabIndex: Int = 0
+    
     @Environment(\.dismiss) private var dismiss
-
+    
+    let itemTab: [CustomUIModel] = [
+        .init(icon: "paintpalette.fill", title: "Background", color: Color(hex: "9C728C"), background: .pinkUI.opacity(0.5)),
+        .init(icon: "face.smiling", title: "Sticker", color: Color(hex: "9C728C"), background: .pinkUI.opacity(0.5)),
+        .init(icon: "wand.and.sparkles", title: "Filters", color: Color(hex: "9C728C"), background: .pinkUI.opacity(0.5))
+    ]
+    
     var body: some View {
-        ZStack {
-            Color(hex: "EEE8FE").ignoresSafeArea()
-            VStack(spacing: 22) {
+        ZStack(alignment: .bottom) {
+            Color(hex: "EDDDE8").opacity(0.3).ignoresSafeArea()
+            VStack(spacing: 0) {
                 HStack {
                     Button {
                         dismiss()
@@ -33,48 +41,100 @@ struct CustomizeView: View {
                     Spacer()
                 }
                 .overlay {
-                    TextSwiftUI(title: "Cuztomize", size: 28, color: .black.opacity(0.5), weight: .bold)
+                    TextSwiftUI(title: "Cuztomize", size: 24, color: .black.opacity(0.5), weight: .bold)
                 }
-                
-                ScrollView {
-                    ZStack {
-                        Color.white.cornerRadius(10)
-                        VStack {
-                            ForEach(images.indices, id: \.self) { i in
-                                Image(uiImage: images[i])
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(height: 400)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                VStack(spacing: 26) {
+                    ScrollView(showsIndicators: false) {
+                        ZStack {
+                            Color.white.cornerRadius(10)
+                            VStack {
+                                //                            ForEach(images.indices, id: \.self) { i in
+                                //                                Image(uiImage: images[i])
+                                //                                    .resizable()
+                                //                                    .scaledToFill()
+                                //                                    .frame(height: 400)
+                                //                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                //                            }
+                                ForEach(0..<4) { _ in
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.pinkUI, lineWidth: 2)
+                                        .frame(height: 300)
+                                        .background(Color.pinkUI.cornerRadius(10))
+                                }
                             }
+                            .padding(12)
                         }
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 12)
+                        .padding(.bottom, 5)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
                     }
-                    .padding(.horizontal, 16)
+                    
+                    VStack(spacing: 0) {
+                        HStack(spacing: 0) {
+                            CustomTabView(index: $selectTabIndex, items: itemTab)
+                        }
+                        .padding(3)
+                        .background(.white)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(.white, lineWidth: 1)
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
+                        
+                        TabView(selection: $selectTabIndex) {
+                            BackgorundUI()
+                                .tag(0)
+                            StickerUI()
+                                .tag(1)
+                            FiltersUI()
+                                .tag(2)
+                        }
+                        .tabViewStyle(.page(indexDisplayMode: .never))
+                        .frame(height: 170)
+                    }
                 }
-                .padding(.horizontal, 16)
-                
-                Button {
-                   
-                } label: {
-                    HStack(spacing: 4) {
+                .padding(EdgeInsets(top: 18, leading: 18, bottom: 0, trailing: 18))
+
+                HStack {
+                    Button {
                        
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "square.and.arrow.up.fill")
+                                .resizable()
+                                .foregroundColor(.white)
+                                .frame(width: 20, height: 20)
+                            TextSwiftUI(title: "Share", size: 16, color: .white, weight: .bold)
+                        }
+                        .padding(12)
+                        .frame(height: 50)
+                        .frame(maxWidth: .infinity)
+                        .background(Color(hex: "99B7DD"))
+                        .cornerRadius(12)
                     }
-                    .padding(24)
-                    .frame(maxWidth: .infinity)
-                    .background(.white)
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(.white, lineWidth: 1)
-                    )
-                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
+                    Button {
+                       
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "square.and.arrow.down.on.square.fill")
+                                .resizable()
+                                .foregroundColor(.white)
+                                .frame(width: 20, height: 20)
+                            TextSwiftUI(title: "Save", size: 16, color: .white, weight: .bold)
+                        }
+                        .padding(12)
+                        .frame(height: 50)
+                        .frame(maxWidth: .infinity)
+                        .background(Color(hex: "FC3FAE"))
+                        .cornerRadius(12)
+                    }
                 }
-                
-                Spacer()
-                
+                .padding(.horizontal, 12)
+                .frame(height: 70)
+                .background(.white)
+                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 4, y: 0)
             }
-            .padding(24)
         }
         .navigationBarBackButtonHidden(true)
     }

@@ -144,7 +144,8 @@ struct UploadPhotoView: View {
                             .stroke(.white, lineWidth: 1)
                     )
                     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
-                }.disabled(selected != 4)
+                }
+                .disabled(selected != 4)
                 
                 Spacer()
                 
@@ -153,7 +154,7 @@ struct UploadPhotoView: View {
         }
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $isNavtoCustomize) {
-            CustomizeView(images: images.compactMap { $0 })
+//            CustomizeView(images: images.compactMap { $0 })
         }
     }
 }

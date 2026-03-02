@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct StickerView: View {
+struct StickerDrakeView: View {
     
     let image: UIImage
     

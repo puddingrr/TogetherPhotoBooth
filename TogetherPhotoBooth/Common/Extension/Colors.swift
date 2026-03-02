@@ -13,6 +13,11 @@ extension Color {
         startPoint: .top,
         endPoint: .bottom
     )
+    static let pinkBgGredient = LinearGradient(
+        gradient: Gradient(colors: [Color(hex: "F9C5E5"), Color(hex: "EBD3E7")]),
+        startPoint: .top,
+        endPoint: .bottom
+    )
     
     init(hex: String) {
         let scanner = Scanner(string: hex)
