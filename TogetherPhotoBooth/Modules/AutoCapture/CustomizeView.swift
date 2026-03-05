@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CustomizeView: View {
     
-    //    @State var images: [UIImage]
+    @State var images: [UIImage]
     @State private var selectTabIndex: Int = 0
     
     @Environment(\.dismiss) private var dismiss
@@ -19,6 +19,10 @@ struct CustomizeView: View {
         .init(icon: "face.smiling", title: "Sticker", color: Color(hex: "9C728C"), background: .pinkUI.opacity(0.5)),
         .init(icon: "wand.and.sparkles", title: "Filters", color: Color(hex: "9C728C"), background: .pinkUI.opacity(0.5))
     ]
+    
+    @State private var selectedBackground: Color = .white
+    @State private var selectedStickers: [StickerItem] = []
+    @State private var selectedFilter: Color = .white
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -46,20 +50,23 @@ struct CustomizeView: View {
                 VStack(spacing: 26) {
                     ScrollView(showsIndicators: false) {
                         ZStack {
-                            Color.white.cornerRadius(10)
+                            selectedBackground
                             VStack {
-                                //                            ForEach(images.indices, id: \.self) { i in
-                                //                                Image(uiImage: images[i])
-                                //                                    .resizable()
-                                //                                    .scaledToFill()
-                                //                                    .frame(height: 400)
-                                //                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                //                            }
-                                ForEach(0..<4) { _ in
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.pinkUI, lineWidth: 2)
-                                        .frame(height: 300)
-                                        .background(Color.pinkUI.cornerRadius(10))
+                                ForEach(images.indices, id: \.self) { i in
+                                    ZStack {
+                                        Image(uiImage: images[i])
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(height: 400)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        
+                                        //filter color apply for image
+                                        selectedFilter.opacity(0.1)
+                                        
+                                        ForEach($selectedStickers.filter { $0.parentImageIndex.wrappedValue == i }) { $sticker in
+                                            StickerView(sticker: $sticker)
+                                        }
+                                    }
                                 }
                             }
                             .padding(12)
@@ -83,11 +90,11 @@ struct CustomizeView: View {
                         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
                         
                         TabView(selection: $selectTabIndex) {
-                            BackgroundUI()
+                            BackgroundUI(selectedBackground: $selectedBackground)
                                 .tag(0)
-                            StickerUI()
+                            StickerUI(selectedStickers: $selectedStickers)
                                 .tag(1)
-                            FiltersUI()
+                            FiltersUI(selectedFilter: $selectedFilter)
                                 .tag(2)
                         }
                         .tabViewStyle(.page(indexDisplayMode: .never))
@@ -139,4 +146,64 @@ struct CustomizeView: View {
         }
         .navigationBarBackButtonHidden(true)
     }
+}
+
+// MARK: - Individual StickerView
+struct StickerView: View {
+    @Binding var sticker: StickerItem
+    
+    @State private var dragOffset: CGSize = .zero
+    @State private var currentScale: CGFloat = 1.0
+    @State private var currentRotation: Angle = .zero
+    @State private var isDraggingCorner = false
+    
+    var body: some View {
+        ZStack {
+            Text(sticker.emoji)
+                .font(.system(size: 40))
+                .scaleEffect(sticker.scale * currentScale)
+                .rotationEffect(sticker.rotation + currentRotation)
+                .position(x: sticker.position.x + dragOffset.width,
+                          y: sticker.position.y + dragOffset.height)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            dragOffset = value.translation
+                        }
+                        .onEnded { value in
+                            sticker.position.x += value.translation.width
+                            sticker.position.y += value.translation.height
+                            dragOffset = .zero
+                        }
+                )
+            
+            // Corner handle for scaling
+            Circle()
+                .fill(Color.blue.opacity(0.7))
+                .frame(width: 20, height: 20)
+                .position(
+                    x: sticker.position.x + dragOffset.width + 40 * sticker.scale * currentScale,
+                    y: sticker.position.y + dragOffset.height + 40 * sticker.scale * currentScale
+                )
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            isDraggingCorner = true
+                            let distance = sqrt(value.translation.width * value.translation.width +
+                                                value.translation.height * value.translation.height)
+                            currentScale = 1.0 + distance / 100
+                        }
+                        .onEnded { _ in
+                            sticker.scale *= currentScale
+                            currentScale = 1.0
+                            isDraggingCorner = false
+                        }
+                )
+        }
+    }
+}
+
+// Convenience operator to add CGSize + CGPoint
+fileprivate func + (lhs: CGPoint, rhs: CGSize) -> CGPoint {
+    CGPoint(x: lhs.x + rhs.width, y: lhs.y + rhs.height)
 }

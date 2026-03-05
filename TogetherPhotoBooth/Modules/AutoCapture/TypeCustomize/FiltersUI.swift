@@ -10,18 +10,19 @@ import SwiftUI
 struct FilterCategory {
     let color: Color
     let title: String
-    let icon: UIImage
+    let icon: String
 }
 
 struct FiltersUI: View {
     
+    @Binding var selectedFilter: Color
     @State private var selectedIndex: Int? = nil
-
+    
     let categories: [FilterCategory] = [
-        .init(color: .blue, title: "Blue Colo", icon: .cat),
-        .init(color: .red, title: "Red", icon: .cat),
-        .init(color: .green, title: "Green", icon: .cat),
-        .init(color: .yellow, title: "Yellow", icon: .cat)
+        .init(color: Color(hex: "6CA0DC"), title: "Soft Blue", icon: "snowflake"),
+        .init(color: Color(hex: "E07A5F"), title: "Old Money", icon: "crown.fill"),
+        .init(color: Color(hex: "F8C8DC"), title: "Soft Girl", icon: "sparkles"),
+        .init(color: Color(hex: "F4A261"), title: "Golden Hour", icon: "sun.max.fill")
     ]
     
     var body: some View {
@@ -35,9 +36,10 @@ struct FiltersUI: View {
                                 .foregroundColor(Color.white)
                                 .frame(width: 115, height: 115)
                                 .overlay {
-                                    Image(uiImage: categories[index].icon)
+                                    Image(systemName: categories[index].icon)
                                         .resizable()
                                         .scaledToFit()
+                                        .foregroundColor(categories[index].color)
                                         .frame(width: 50, height: 50)
                                 }
                                 .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
@@ -59,6 +61,7 @@ struct FiltersUI: View {
                     }
                     .onTapGesture {
                         selectedIndex = index
+                        selectedFilter = categories[index].color
                     }
                 }
             }

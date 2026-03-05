@@ -12,9 +12,19 @@ struct StickerCategory {
     let stickers: [String]
 }
 
+struct StickerItem: Identifiable {
+    let id = UUID()
+    var emoji: String
+    var parentImageIndex: Int? = nil
+    var position: CGPoint
+    var scale: CGFloat = 1.0
+    var rotation: Angle = .zero
+}
+
 struct StickerUI: View {
     
-    @State private var selectedCount: Int? = nil
+    @Binding var selectedStickers: [StickerItem]
+    @State private var selectedSticker: Int? = nil
 
     let categories: [StickerCategory] = [
         
@@ -31,7 +41,7 @@ struct StickerUI: View {
             VStack(spacing: 12) {
                 VStack {
                     TextSwiftUI(title: "✨ Tab sticker to add theme!", size: 16, color: Color(hex: "9A537C").opacity(0.5), weight: .bold)
-                    TextSwiftUI(title: "0 stickers added", size: 14, color: .gray)
+                    TextSwiftUI(title: "\(selectedStickers.count) stickers added", size: 14, color: .gray)
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity)
@@ -44,17 +54,29 @@ struct StickerUI: View {
                         LazyVGrid(columns: [GridItem(.flexible())].repeated(count: 5), spacing: 12) {
                             ForEach(0..<categories[c].stickers.count, id: \.self) { i in
                                 let img = categories[c].stickers[i]
+                                let isSelected = selectedStickers.contains { $0.emoji == img }
+
                                 Text("\(img)")
                                     .font(.system(size: 40))
                                     .padding(12)
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .foregroundColor(Color.white)
+                                            .foregroundColor(isSelected ? Color.pink.opacity(0.5) : Color.white)
                                     )
                                     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
                                     .onTapGesture {
-                                        //                                    selectedCount += 1
-                                        //                                    onSelect(img)
+                                        if let index = selectedStickers.firstIndex(where: { $0.emoji == img }) {
+                                            // Remove sticker if already added
+                                            selectedStickers.remove(at: index)
+                                        } else {
+                                            // Add new sticker at default position (center)
+                                            let newSticker = StickerItem(
+                                                emoji: img,
+                                                parentImageIndex: i,
+                                                position: CGPoint(x: 200, y: 200)
+                                            )
+                                            selectedStickers.append(newSticker)
+                                        }
                                     }
                             }
                         }

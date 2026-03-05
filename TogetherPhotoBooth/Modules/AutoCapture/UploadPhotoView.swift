@@ -154,7 +154,7 @@ struct UploadPhotoView: View {
         }
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $isNavtoCustomize) {
-//            CustomizeView(images: images.compactMap { $0 })
+            CustomizeView(images: images.compactMap { $0 })
         }
     }
 }

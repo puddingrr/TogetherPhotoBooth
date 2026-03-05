@@ -16,24 +16,25 @@ struct ColorCategory {
 
 struct BackgroundUI: View {
     
-    let columns = Array(repeating: GridItem(.flexible()), count: 4)
-    
+    @Binding var selectedBackground: Color
     @State private var selectedIndex: Int? = nil
-    
+
     let categories: [ColorCategory] = [
-        ColorCategory(color: .blue, title: "Blue"),
-        ColorCategory(color: .red, title: "Red"),
-        ColorCategory(color: .green, title: "Green"),
-        ColorCategory(color: .yellow, title: "Yellow"),
-        ColorCategory(color: .blue, title: "Blue"),
-        ColorCategory(color: .red, title: "Red"),
-        ColorCategory(color: .green, title: "Green"),
-        ColorCategory(color: .yellow, title: "Yellow")
+        ColorCategory(color: Color(hex: "EBDBE8"), title: "Pink"),
+        ColorCategory(color: Color(hex: "F9EBEB"), title: "Peach"),
+        ColorCategory(color: Color(hex: "f8c6d8"), title: "Pink Blush"),
+        ColorCategory(color: Color(hex: "f9d2b3"), title: "Peach Blush"),
+        ColorCategory(color: Color(hex: "FFF2D0"), title: "Yellow"),
+        ColorCategory(color: Color(hex: "A8F1FF"), title: "Sky Blue"),
+        ColorCategory(color: Color(hex: "C7EABB"), title: "Green"),
+        ColorCategory(color: Color(hex: "F9EBEB"), title: "Blue"),
+        ColorCategory(color: Color(hex: "C9BEFF"), title: "Purple"),
+        ColorCategory(color: Color(hex: "91ADC8"), title: "Teal")
     ]
     
     var body: some View {
         ScrollView(showsIndicators: false) {
-            LazyVGrid(columns: columns, spacing: 6) {
+            LazyVGrid(columns: [GridItem(.flexible())].repeated(count: 3), spacing: 6) {
                 
                 ForEach(categories.indices, id: \.self) { index in
                     VStack(spacing: 6) {
@@ -59,6 +60,7 @@ struct BackgroundUI: View {
                     }
                     .onTapGesture {
                         selectedIndex = index
+                        selectedBackground = categories[index].color
                     }
                 }
             }

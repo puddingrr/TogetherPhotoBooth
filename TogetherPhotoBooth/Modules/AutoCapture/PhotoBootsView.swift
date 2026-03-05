@@ -11,8 +11,10 @@ struct PhotoBootsView: View {
     
     @State private var isNavToBoots: Bool = false
     @State private var isNavTo4Shot: Bool = false
-    @State private var isNavUploadPhoto: Bool = false
-    
+    @State private var showPicker = false
+    @State private var isNavtoUploadPhotoReview = false
+    @State private var selectedImages: [UIImage] = []
+
     var body: some View {
         VStack(spacing: 16) {
             TextSwiftUI(title: "📸 Together x Booth", size: 36, weight: .bold)
@@ -53,7 +55,7 @@ struct PhotoBootsView: View {
                 }
                 
                 Button {
-                    isNavUploadPhoto = true
+                    showPicker = true
                 } label: {
                     VStack(spacing: 20) {
                         ZStack {
@@ -91,9 +93,18 @@ struct PhotoBootsView: View {
         .navigationDestination(isPresented: $isNavTo4Shot) {
             AutoCapture4ShotView()
         }
-        .navigationDestination(isPresented: $isNavUploadPhoto) {
-            //            UploadPhotoView(images: nil, onRetake: ([UIImage]) -> Void)
-                        CustomizeView()
+        .sheet(isPresented: $showPicker, onDismiss: {
+            if !selectedImages.isEmpty {
+                isNavtoUploadPhotoReview = true
+            }
+        }) {
+            PhotoPicker(selectedImages: $selectedImages, maxSelection: 4)
+        }
+        .navigationDestination(isPresented: $isNavtoUploadPhotoReview) {
+            UploadPhotoView(images: selectedImages, onRetake: { images in
+                // optional: handle retake
+                print("Selected images: \(images.count)")
+            })
         }
     }
 }
