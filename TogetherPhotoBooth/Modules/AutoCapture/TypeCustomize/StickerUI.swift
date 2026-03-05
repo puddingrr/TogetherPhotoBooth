@@ -24,6 +24,8 @@ struct StickerItem: Identifiable {
 struct StickerUI: View {
     
     @Binding var selectedStickers: [StickerItem]
+    var currentVisibleImageIndex: Int
+    
     @State private var selectedSticker: Int? = nil
 
     let categories: [StickerCategory] = [
@@ -65,16 +67,18 @@ struct StickerUI: View {
                                     )
                                     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
                                     .onTapGesture {
-                                        if let index = selectedStickers.firstIndex(where: { $0.emoji == img }) {
-                                            // Remove sticker if already added
+                                        if let index = selectedStickers.firstIndex(where: {
+                                            $0.emoji == img && $0.parentImageIndex == currentVisibleImageIndex
+                                        }) {
                                             selectedStickers.remove(at: index)
                                         } else {
-                                            // Add new sticker at default position (center)
+                                            
                                             let newSticker = StickerItem(
                                                 emoji: img,
-                                                parentImageIndex: i,
+                                                parentImageIndex: currentVisibleImageIndex,
                                                 position: CGPoint(x: 200, y: 200)
                                             )
+                                            
                                             selectedStickers.append(newSticker)
                                         }
                                     }
@@ -85,5 +89,15 @@ struct StickerUI: View {
             }
             .padding(EdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0))
         }
+    }
+    func addSticker(_ emoji: String) {
+        let newSticker = StickerItem(
+            emoji: emoji,
+            parentImageIndex: currentVisibleImageIndex, position: CGPoint(x: 200, y: 200), // center of 400 height image
+            scale: 1.0,
+            rotation: .zero
+        )
+
+        selectedStickers.append(newSticker)
     }
 }

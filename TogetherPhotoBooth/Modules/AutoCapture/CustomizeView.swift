@@ -11,6 +11,7 @@ struct CustomizeView: View {
     
     @State var images: [UIImage]
     @State private var selectTabIndex: Int = 0
+    @State private var currentVisibleImageIndex: Int = 0
     
     @Environment(\.dismiss) private var dismiss
     
@@ -23,6 +24,9 @@ struct CustomizeView: View {
     @State private var selectedBackground: Color = .white
     @State private var selectedStickers: [StickerItem] = []
     @State private var selectedFilter: Color = .white
+    @State private var shareImage: UIImage?
+    @State private var showShare = false
+    @State private var showSavedPopup = false
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -53,20 +57,30 @@ struct CustomizeView: View {
                             selectedBackground
                             VStack {
                                 ForEach(images.indices, id: \.self) { i in
-                                    ZStack {
-                                        Image(uiImage: images[i])
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(height: 400)
-                                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        
-                                        //filter color apply for image
-                                        selectedFilter.opacity(0.1)
-                                        
-                                        ForEach($selectedStickers.filter { $0.parentImageIndex.wrappedValue == i }) { $sticker in
-                                            StickerView(sticker: $sticker)
+                                    GeometryReader { geo in
+                                        ZStack {
+                                            Image(uiImage: images[i])
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(height: 400)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                                            selectedFilter.opacity(0.1)
+
+                                            ForEach($selectedStickers.filter { $0.parentImageIndex.wrappedValue == i }) { $sticker in
+                                                StickerView(sticker: $sticker)
+                                            }
+                                        }
+                                        .onChange(of: geo.frame(in: .global).midY) { value in
+                                            let screenCenter = UIScreen.main.bounds.midY
+                                            let distance = abs(value - screenCenter)
+
+                                            if distance < 200 { // image near screen center
+                                                currentVisibleImageIndex = i
+                                            }
                                         }
                                     }
+                                    .frame(height: 400)
                                 }
                             }
                             .padding(12)
@@ -92,8 +106,10 @@ struct CustomizeView: View {
                         TabView(selection: $selectTabIndex) {
                             BackgroundUI(selectedBackground: $selectedBackground)
                                 .tag(0)
-                            StickerUI(selectedStickers: $selectedStickers)
-                                .tag(1)
+                            StickerUI(
+                                selectedStickers: $selectedStickers,
+                                currentVisibleImageIndex: currentVisibleImageIndex
+                            )                                .tag(1)
                             FiltersUI(selectedFilter: $selectedFilter)
                                 .tag(2)
                         }
@@ -106,7 +122,7 @@ struct CustomizeView: View {
 
                 HStack {
                     Button {
-                       
+                        shareImageAction()
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "square.and.arrow.up.fill")
@@ -122,7 +138,7 @@ struct CustomizeView: View {
                         .cornerRadius(12)
                     }
                     Button {
-                       
+                       saveImage()
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "square.and.arrow.down.on.square.fill")
@@ -143,8 +159,88 @@ struct CustomizeView: View {
                 .background(.white)
                 .shadow(color: Color.black.opacity(0.1), radius: 4, x: 4, y: 0)
             }
+            if showSavedPopup {
+                VStack {
+                    Spacer()
+                    
+                    Text("Saved Successfully! 💖")
+                        .font(.headline)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(.black.opacity(0.8))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding(.bottom, 100)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
         }
         .navigationBarBackButtonHidden(true)
+        .sheet(isPresented: $showShare) {
+            if let image = shareImage {
+                ShareSheet(activityItems: [image])
+            }
+        }
+    }
+    func saveImage() {
+        let renderer = ImageRenderer(content: exportView)
+        
+        if let uiImage = renderer.uiImage {
+            UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
+            
+            showSavedPopup = true
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                showSavedPopup = false
+            }
+        }
+    }
+    func shareImageAction() {
+        if let image = renderImage() {
+            shareImage = image
+            showShare = true
+        }
+    }
+    @MainActor
+    func renderImage() -> UIImage? {
+        let exportWidth: CGFloat = UIScreen.main.bounds.width - 24
+        let exportHeight: CGFloat = 600
+
+        let view = exportView
+            .frame(width: exportWidth, height: exportHeight)
+
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = UIScreen.main.scale
+
+        return renderer.uiImage
+    }
+    var exportView: some View {
+        ZStack {
+            selectedBackground
+            
+            VStack(spacing: 4) {
+                ForEach(images.indices, id: \.self) { i in
+                    ZStack {
+                        Image(uiImage: images[i])
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: UIScreen.main.bounds.width - 24, height: 600 / CGFloat(images.count) + 150)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                        selectedFilter.opacity(0.1)
+
+                        ForEach(selectedStickers.filter { $0.parentImageIndex == i }) { sticker in
+                            Text(sticker.emoji)
+                                .font(.system(size: 40))
+                                .scaleEffect(sticker.scale)
+                                .rotationEffect(sticker.rotation)
+                                .position(sticker.position)
+                        }
+                    }
+                }
+            }
+            .padding(12)
+        }
     }
 }
 
@@ -206,4 +302,15 @@ struct StickerView: View {
 // Convenience operator to add CGSize + CGPoint
 fileprivate func + (lhs: CGPoint, rhs: CGSize) -> CGPoint {
     CGPoint(x: lhs.x + rhs.width, y: lhs.y + rhs.height)
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    
+    let activityItems: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
