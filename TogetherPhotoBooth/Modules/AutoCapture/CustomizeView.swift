@@ -28,10 +28,14 @@ struct CustomizeView: View {
     @State private var showShare = false
     @State private var showSavedPopup = false
     
+    let imageHeight: CGFloat = 400 // consistent height for preview and export
+    
     var body: some View {
         ZStack(alignment: .bottom) {
             Color(hex: "EDDDE8").opacity(0.3).ignoresSafeArea()
+            
             VStack(spacing: 0) {
+                // Top Bar
                 HStack {
                     Button {
                         dismiss()
@@ -51,7 +55,9 @@ struct CustomizeView: View {
                 .overlay {
                     TextSwiftUI(title: "Cuztomize", size: 24, color: .black.opacity(0.5), weight: .bold)
                 }
+                
                 VStack(spacing: 26) {
+                    // Preview ScrollView
                     ScrollView(showsIndicators: false) {
                         ZStack {
                             selectedBackground
@@ -62,25 +68,25 @@ struct CustomizeView: View {
                                             Image(uiImage: images[i])
                                                 .resizable()
                                                 .scaledToFill()
-                                                .frame(height: 400)
+                                                .frame(height: imageHeight)
                                                 .clipShape(RoundedRectangle(cornerRadius: 10))
-
+                                                .clipped()
+                                            
                                             selectedFilter.opacity(0.1)
-
+                                            
+                                            // Stickers
                                             ForEach($selectedStickers.filter { $0.parentImageIndex.wrappedValue == i }) { $sticker in
                                                 StickerView(sticker: $sticker)
                                             }
                                         }
                                         .onChange(of: geo.frame(in: .global).midY) { value in
                                             let screenCenter = UIScreen.main.bounds.midY
-                                            let distance = abs(value - screenCenter)
-
-                                            if distance < 200 { // image near screen center
+                                            if abs(value - screenCenter) < 200 {
                                                 currentVisibleImageIndex = i
                                             }
                                         }
                                     }
-                                    .frame(height: 400)
+                                    .frame(height: imageHeight)
                                 }
                             }
                             .padding(12)
@@ -90,6 +96,7 @@ struct CustomizeView: View {
                         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 4)
                     }
                     
+                    // Tabs
                     VStack(spacing: 0) {
                         HStack(spacing: 0) {
                             CustomTabView(index: $selectTabIndex, items: itemTab)
@@ -109,7 +116,8 @@ struct CustomizeView: View {
                             StickerUI(
                                 selectedStickers: $selectedStickers,
                                 currentVisibleImageIndex: currentVisibleImageIndex
-                            )                                .tag(1)
+                            )
+                            .tag(1)
                             FiltersUI(selectedFilter: $selectedFilter)
                                 .tag(2)
                         }
@@ -119,7 +127,8 @@ struct CustomizeView: View {
                     .padding(.top, -10)
                 }
                 .padding(EdgeInsets(top: 18, leading: 18, bottom: 0, trailing: 18))
-
+                
+                // Bottom Buttons
                 HStack {
                     Button {
                         shareImageAction()
@@ -137,8 +146,9 @@ struct CustomizeView: View {
                         .background(Color(hex: "99B7DD"))
                         .cornerRadius(12)
                     }
+                    
                     Button {
-                       saveImage()
+                        saveImage()
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "square.and.arrow.down.on.square.fill")
@@ -159,10 +169,11 @@ struct CustomizeView: View {
                 .background(.white)
                 .shadow(color: Color.black.opacity(0.1), radius: 4, x: 4, y: 0)
             }
+            
+            // Saved Popup
             if showSavedPopup {
                 VStack {
                     Spacer()
-                    
                     Text("Saved Successfully! 💖")
                         .font(.headline)
                         .padding(.horizontal, 20)
@@ -182,65 +193,76 @@ struct CustomizeView: View {
             }
         }
     }
+    
+    // MARK: - Save Image
     func saveImage() {
-        let renderer = ImageRenderer(content: exportView)
-        
-        if let uiImage = renderer.uiImage {
+        if let uiImage = renderImage() {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
-            
             showSavedPopup = true
-            
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 showSavedPopup = false
             }
         }
     }
+    
+    // MARK: - Share Image
     func shareImageAction() {
         if let image = renderImage() {
             shareImage = image
             showShare = true
         }
     }
+    
+    // MARK: - Render Export Image
     @MainActor
     func renderImage() -> UIImage? {
-        let exportWidth: CGFloat = UIScreen.main.bounds.width - 24
-        let exportHeight: CGFloat = 600
+        // Width = screen width, height = number of images * imageHeight + padding
+        let exportWidth: CGFloat = UIScreen.main.bounds.width
+        let exportHeight: CGFloat = CGFloat(images.count) * (imageHeight + 12) + 12
 
         let view = exportView
             .frame(width: exportWidth, height: exportHeight)
 
         let renderer = ImageRenderer(content: view)
         renderer.scale = UIScreen.main.scale
-
         return renderer.uiImage
     }
+    
+    // MARK: - Export View
     var exportView: some View {
         ZStack {
             selectedBackground
-            
-            VStack(spacing: 4) {
+            VStack(spacing: 12) {
                 ForEach(images.indices, id: \.self) { i in
                     ZStack {
+                        // Full screen width minus the same horizontal padding
+                        let imageWidth = UIScreen.main.bounds.width - 24
                         Image(uiImage: images[i])
                             .resizable()
                             .scaledToFill()
-                            .frame(width: UIScreen.main.bounds.width - 24, height: 600 / CGFloat(images.count) + 150)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-
+                            .frame(width: imageWidth, height: imageHeight)
+                            .clipped()
+                            .cornerRadius(10)
+                        
                         selectedFilter.opacity(0.1)
-
+                        
+                        // Stickers for this image
                         ForEach(selectedStickers.filter { $0.parentImageIndex == i }) { sticker in
                             Text(sticker.emoji)
                                 .font(.system(size: 40))
                                 .scaleEffect(sticker.scale)
                                 .rotationEffect(sticker.rotation)
-                                .position(sticker.position)
+                                .position(
+                                    x: sticker.position.x - 8,       // match horizontal padding
+                                    y: sticker.position.y - 9   // vertical padding
+                                )
                         }
                     }
                 }
             }
             .padding(12)
         }
+        .frame(width: UIScreen.main.bounds.width)
     }
 }
 
@@ -255,6 +277,7 @@ struct StickerView: View {
     
     var body: some View {
         ZStack {
+            // Sticker Emoji
             Text(sticker.emoji)
                 .font(.system(size: 40))
                 .scaleEffect(sticker.scale * currentScale)
@@ -304,8 +327,8 @@ fileprivate func + (lhs: CGPoint, rhs: CGSize) -> CGPoint {
     CGPoint(x: lhs.x + rhs.width, y: lhs.y + rhs.height)
 }
 
+// Share Sheet
 struct ShareSheet: UIViewControllerRepresentable {
-    
     let activityItems: [Any]
     
     func makeUIViewController(context: Context) -> UIActivityViewController {
