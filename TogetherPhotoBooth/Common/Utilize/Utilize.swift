@@ -14,6 +14,29 @@ public class Utilize {
     static let shared = Utilize()
     private var isAlertPresented = false
    
+    func showToast(message: String, duration: Double = 2.0) {
+        guard let window = UIApplication.shared.connectedScenes
+                       .compactMap({ $0 as? UIWindowScene })
+                       .flatMap({ $0.windows })
+                       .first(where: { $0.isKeyWindow }) else { return }
+        
+        let hosting = UIHostingController(rootView: ToastView(message: message))
+        hosting.view.backgroundColor = .clear
+        hosting.view.frame = window.bounds
+        hosting.view.isUserInteractionEnabled = false
+        
+        window.addSubview(hosting.view)
+        
+        // Animate toast appearance and disappearance
+        hosting.rootView.show = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            hosting.rootView.show = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                hosting.view.removeFromSuperview()
+            }
+        }
+    }
+        
     func showAlert(title: String = "", message: String, ok: String = "OK", action: (() -> Void)? = nil) {
         guard !isAlertPresented else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {

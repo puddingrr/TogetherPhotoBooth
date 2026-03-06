@@ -101,10 +101,7 @@ struct PhotoBootsView: View {
             PhotoPicker(selectedImages: $selectedImages, maxSelection: 4)
         }
         .navigationDestination(isPresented: $isNavtoUploadPhotoReview) {
-            UploadPhotoView(images: selectedImages, onRetake: { images in
-                // optional: handle retake
-                print("Selected images: \(images.count)")
-            })
+            UploadPhotoView(images: selectedImages, formCapture: false)
         }
     }
 }

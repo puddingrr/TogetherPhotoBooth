@@ -9,34 +9,23 @@ import SwiftUI
 import PhotosUI
 
 struct UploadPhotoView: View {
-    
-    @State private var isNavtoCustomize = false
+
     @State var images: [UIImage?]
-    var onRetake: ([UIImage]) -> Void
     
+    var formCapture: Bool = false
+    @State private var reCaptureSlotIndex: Int? = nil
     @State private var pickerSlotIndex: Int? = nil
     @State private var showPicker: Bool = false
-    
-    init(images: [UIImage], onRetake: @escaping ([UIImage]) -> Void) {
-        var arr: [UIImage?] = Array(repeating: nil, count: 4)
-        for (i, img) in images.enumerated() {
-            if i < 4 { arr[i] = img }
-        }
-        _images = State(initialValue: arr)
-        self.onRetake = onRetake
-    }
-    
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
-    
+    @State private var isNavtoCustomize = false
+
     @Environment(\.dismiss) private var dismiss
+    let columns = [ GridItem(.flexible()), GridItem(.flexible())]
+    var onReTake: ((Int) -> Void)?
     
     var body: some View {
         ZStack {
             Color.UpdatePhotosBgGredient.ignoresSafeArea()
-            
+
             VStack(spacing: 22) {
                 // Header
                 HStack {
@@ -54,12 +43,11 @@ struct UploadPhotoView: View {
                 .overlay {
                     TextSwiftUI(title: "Upload Photo", size: 28, color: .black.opacity(0.5), weight: .bold)
                 }
-                
+
                 // Image Grid
                 LazyVGrid(columns: columns, spacing: 10) {
                     ForEach(0..<4, id: \.self) { i in
                         ZStack {
-                            // Show image or placeholder
                             if let img = images[i] {
                                 Image(uiImage: img)
                                     .resizable()
@@ -72,14 +60,19 @@ struct UploadPhotoView: View {
                                     .fill(Color.white.opacity(0.15))
                                     .frame(height: 200)
                             }
-                            
+
                             VStack {
                                 HStack {
                                     Spacer()
-                                    // Retake / Upload button
                                     Button {
-                                        pickerSlotIndex = i
-                                        showPicker = true
+                                        if formCapture {
+                                            reCaptureSlotIndex = i
+                                            onReTake?(i)
+                                            dismiss()
+                                        } else {
+                                            pickerSlotIndex = i
+                                            showPicker = true
+                                        }
                                     } label: {
                                         Image(systemName: images[i] == nil ? "plus" : "arrow.triangle.2.circlepath")
                                             .font(.system(size: 16, weight: .bold))
@@ -104,17 +97,15 @@ struct UploadPhotoView: View {
                     }
                 }
                 .padding(.top, 30)
-                
+
                 // Continue Button
                 let selectedCount = images.compactMap { $0 }.count
                 Button {
                     let newImages = images.compactMap { $0 }
-                    onRetake(newImages)
-                    
                     if newImages.count == 4 {
                         isNavtoCustomize = true
                     } else {
-                        dismiss()
+                        Utilize.shared.showToast(message: "PhotoUpload is not enough")
                     }
                 } label: {
                     VStack(spacing: 4) {
@@ -143,7 +134,7 @@ struct UploadPhotoView: View {
         .navigationDestination(isPresented: $isNavtoCustomize) {
             CustomizeView(images: images.compactMap { $0 })
         }
-        // Show your existing PhotoPicker for a single slot
+        // MARK: - Picker Sheet
         .sheet(isPresented: $showPicker) {
             if let index = pickerSlotIndex {
                 PhotoPicker(selectedImages: Binding(

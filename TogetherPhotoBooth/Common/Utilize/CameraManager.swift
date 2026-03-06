@@ -64,14 +64,6 @@ final class CameraManager: NSObject, ObservableObject {
         }
     }
     
-    private func startSessionSafely() {
-        sessionQueue.asyncAfter(deadline: .now() + 0.2) {
-            if !self.session.isRunning, self.isConfigured {
-                self.session.startRunning()
-            }
-        }
-    }
-    
     func stopSession() {
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
@@ -79,6 +71,22 @@ final class CameraManager: NSObject, ObservableObject {
                 self.session.stopRunning()
             }
         }
+    }
+    
+    func startSessionSafely() {
+        sessionQueue.asyncAfter(deadline: .now() + 0.2) {
+            if !self.session.isRunning, self.isConfigured {
+                self.session.startRunning()
+            }
+        }
+    }
+    
+    // MARK: - Reset session for retake
+    func resetSession() {
+        stopSession()
+        capturedImages = []
+        capturedImage = nil
+        startSessionSafely()
     }
     
     // MARK: - Switch camera
@@ -89,15 +97,12 @@ final class CameraManager: NSObject, ObservableObject {
             let wasRunning = self.session.isRunning
             if wasRunning { self.session.stopRunning() }
             
-            // Toggle camera position safely
             let newPosition: AVCaptureDevice.Position = (self.currentPosition == .front) ? .back : .front
             
-            // Remove old input
             if let oldInput = self.session.inputs.first {
                 self.session.removeInput(oldInput)
             }
             
-            // Add new input
             guard let newDevice = AVCaptureDevice.default(.builtInWideAngleCamera,
                                                           for: .video,
                                                           position: newPosition),
@@ -108,7 +113,6 @@ final class CameraManager: NSObject, ObservableObject {
             
             if wasRunning { self.session.startRunning() }
             
-            // ✅ Update @Published property on main thread
             DispatchQueue.main.async {
                 self.currentPosition = newPosition
                 NotificationCenter.default.post(name: .cameraDidSwitch, object: newPosition)
@@ -118,26 +122,9 @@ final class CameraManager: NSObject, ObservableObject {
     
     // MARK: - Capture photo
     func capturePhoto() {
+        capturedImage = nil // clear previous
         let settings = AVCapturePhotoSettings()
         output.capturePhoto(with: settings, delegate: self)
-    }
-    
-    func capture4Shots(count: Int, delay: Double = 3) {
-        capturedImages = []
-        func takeShot(index: Int) {
-            if index >= count { return }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                self.capturePhoto()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    if let img = self.capturedImage {
-                        self.capturedImages.append(img)
-                    }
-                    takeShot(index: index + 1)
-                }
-            }
-        }
-        takeShot(index: 0)
     }
     
     // MARK: - Permission
@@ -160,13 +147,10 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput,
                      didFinishProcessingPhoto photo: AVCapturePhoto,
                      error: Error?) {
-        
         guard let data = photo.fileDataRepresentation(),
               let image = UIImage(data: data) else { return }
         
         var finalImage = image
-        
-        // Mirror front camera
         if let input = session.inputs.first as? AVCaptureDeviceInput,
            input.device.position == .front {
             finalImage = UIImage(cgImage: image.cgImage!,
@@ -201,10 +185,8 @@ struct CameraPreview: UIViewRepresentable {
     func updateUIView(_ uiView: PreviewView, context: Context) {}
 }
 
-// MARK: - Preview View
 final class PreviewView: UIView {
     override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
-    
     private var videoLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
     
     func configure(session: AVCaptureSession, position: AVCaptureDevice.Position) {
@@ -228,7 +210,6 @@ final class PreviewView: UIView {
     }
 }
 
-// MARK: - Notification
 extension Notification.Name {
     static let cameraDidSwitch = Notification.Name("cameraDidSwitch")
 }
