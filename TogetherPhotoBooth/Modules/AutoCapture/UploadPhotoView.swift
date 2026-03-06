@@ -65,6 +65,7 @@ struct UploadPhotoView: View {
                                     .resizable()
                                     .scaledToFill()
                                     .frame(height: 200)
+                                    .clipped()
                                     .clipShape(RoundedRectangle(cornerRadius: 10))
                             } else {
                                 RoundedRectangle(cornerRadius: 10)
