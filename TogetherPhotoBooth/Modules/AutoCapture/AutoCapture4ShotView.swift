@@ -175,7 +175,7 @@ struct AutoCapture4ShotView: View {
             }
             
             if isFinishedCapturing {
-                LoadingUI()
+                LoadingUI2()
             }
         }
         .ignoresSafeArea()
