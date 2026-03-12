@@ -22,7 +22,9 @@ struct FiltersUI: View {
         .init(color: Color(hex: "6CA0DC"), title: "Soft Blue", icon: "snowflake"),
         .init(color: Color(hex: "E07A5F"), title: "Old Money", icon: "crown.fill"),
         .init(color: Color(hex: "F8C8DC"), title: "Soft Girl", icon: "sparkles"),
-        .init(color: Color(hex: "F4A261"), title: "Golden Hour", icon: "sun.max.fill")
+        .init(color: Color(hex: "F4A261"), title: "Golden Hour", icon: "sun.max.fill"),
+        .init(color: Color(hex: "fefae0"), title: "Lighter", icon: "moon.fill"),
+        .init(color: Color(hex: "fff0f3"), title: "White Girl", icon: "cloud.rainbow.crop")
     ]
     
     var body: some View {
@@ -60,8 +62,13 @@ struct FiltersUI: View {
                         TextSwiftUI(title: categories[index].title, size: 14, color: .gray)
                     }
                     .onTapGesture {
-                        selectedIndex = index
-                        selectedFilter = categories[index].color
+                        if selectedIndex == index {
+                            selectedIndex = nil
+                            selectedFilter = .white
+                        } else {
+                            selectedIndex = index
+                            selectedFilter = categories[index].color
+                        }
                     }
                 }
             }

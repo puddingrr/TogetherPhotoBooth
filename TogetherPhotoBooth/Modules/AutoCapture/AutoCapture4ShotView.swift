@@ -107,7 +107,7 @@ struct AutoCapture4ShotView: View {
                         TextSwiftUI(title: "\(countdown)", size: 32, color: .pinkUI, weight: .bold)
                     }
                     
-                    VStack {
+                    VStack(spacing: 16) {
                         if !isFinishedCapturing {
                             
                             // Auto capture button
@@ -171,7 +171,7 @@ struct AutoCapture4ShotView: View {
                         }
                     }
                 }
-                .padding(32)
+                .padding(36)
             }
             
             if isFinishedCapturing {
@@ -190,7 +190,7 @@ struct AutoCapture4ShotView: View {
         }
         .navigationDestination(isPresented: $isNavUploadPhoto) {
             if !camera.capturedImages.isEmpty {
-                UploadPhotoView(images: camera.capturedImages, formCapture: true) { index in
+                UploadPhotoView(images: camera.capturedImages, isPresented: $isNavUploadPhoto, formCapture: true) { index in
                     retakeSlotIndex = index
                     startReCapture()
                 }

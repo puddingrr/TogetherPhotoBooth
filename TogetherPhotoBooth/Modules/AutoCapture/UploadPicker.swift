@@ -37,20 +37,28 @@ struct PhotoPicker: UIViewControllerRepresentable {
         }
         
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-            picker.dismiss(animated: true)
             
             parent.selectedImages.removeAll()
             
+            let group = DispatchGroup()
+            
             for result in results {
                 if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
+                    group.enter()
+                    
                     result.itemProvider.loadObject(ofClass: UIImage.self) { object, error in
                         if let image = object as? UIImage {
                             DispatchQueue.main.async {
                                 self.parent.selectedImages.append(image)
                             }
                         }
+                        group.leave()
                     }
                 }
+            }
+            
+            group.notify(queue: .main) {
+                picker.dismiss(animated: true)
             }
         }
     }

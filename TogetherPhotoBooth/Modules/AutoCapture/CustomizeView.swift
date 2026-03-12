@@ -189,18 +189,25 @@ struct CustomizeView: View {
         .navigationBarBackButtonHidden(true)
         .sheet(isPresented: $showShare) {
             if let image = shareImage {
-                ShareSheet(activityItems: [image])
+                ShareSheet(activityItems: [image]) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        Utilize.popToRootView(animated: true)
+                    }
+                }
             }
         }
     }
-    
+}
+
+extension CustomizeView {
     // MARK: - Save Image
     func saveImage() {
         if let uiImage = renderImage() {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
             showSavedPopup = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 showSavedPopup = false
+                Utilize.popToRootView(animated: true)
             }
         }
     }
@@ -208,6 +215,7 @@ struct CustomizeView: View {
     // MARK: - Share Image
     func shareImageAction() {
         if let image = renderImage() {
+            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
             shareImage = image
             showShare = true
         }
@@ -225,7 +233,11 @@ struct CustomizeView: View {
 
         let renderer = ImageRenderer(content: view)
         renderer.scale = UIScreen.main.scale
-        return renderer.uiImage
+
+        if let image = renderer.uiImage {
+            return removeAlpha(image)
+        }
+        return nil
     }
     
     // MARK: - Export View
@@ -264,6 +276,19 @@ struct CustomizeView: View {
         }
         .frame(width: UIScreen.main.bounds.width)
     }
+    
+    func removeAlpha(_ image: UIImage) -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.opaque = true
+        
+        let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
+        
+        return renderer.image { _ in
+            UIColor.white.setFill()
+            UIBezierPath(rect: CGRect(origin: .zero, size: image.size)).fill()
+            image.draw(at: .zero)
+        }
+    }
 }
 
 // MARK: - Individual StickerView
@@ -297,12 +322,12 @@ struct StickerView: View {
                 )
             
             // Corner handle for scaling
-            Circle()
-                .fill(Color.blue.opacity(0.7))
+            Image(systemName: "crop.rotate")
+                .foregroundColor(Color.pinkUI)
                 .frame(width: 20, height: 20)
                 .position(
-                    x: sticker.position.x + dragOffset.width + 40 * sticker.scale * currentScale,
-                    y: sticker.position.y + dragOffset.height + 40 * sticker.scale * currentScale
+                    x: sticker.position.x + dragOffset.width + 30 * sticker.scale * currentScale,
+                    y: sticker.position.y + dragOffset.height + 30 * sticker.scale * currentScale
                 )
                 .gesture(
                     DragGesture()
@@ -330,9 +355,16 @@ fileprivate func + (lhs: CGPoint, rhs: CGSize) -> CGPoint {
 // Share Sheet
 struct ShareSheet: UIViewControllerRepresentable {
     let activityItems: [Any]
+    var onComplete: (() -> Void)?
     
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        
+        controller.completionWithItemsHandler = { _, _, _, _ in
+            onComplete?()
+        }
+        
+        return controller
     }
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}

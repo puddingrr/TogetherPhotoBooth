@@ -25,9 +25,13 @@ struct BackgroundUI: View {
         ColorCategory(color: Color(hex: "f8c6d8"), title: "Pink Blush"),
         ColorCategory(color: Color(hex: "f9d2b3"), title: "Peach Blush"),
         ColorCategory(color: Color(hex: "FFF2D0"), title: "Yellow"),
+        ColorCategory(color: Color(hex: "d5c6e0"), title: "Lavender"),
+        ColorCategory(color: Color(hex: "ffddd2"), title: "Pearl"),
+        ColorCategory(color: Color(hex: "fcd5ce"), title: "Pastel"),
+        ColorCategory(color: Color(hex: "d8f3dc"), title: "Soft Teal"),
         ColorCategory(color: Color(hex: "A8F1FF"), title: "Sky Blue"),
         ColorCategory(color: Color(hex: "C7EABB"), title: "Green"),
-        ColorCategory(color: Color(hex: "F9EBEB"), title: "Blue"),
+        ColorCategory(color: Color(hex: "F9EBEB"), title: "Soft Pink"),
         ColorCategory(color: Color(hex: "C9BEFF"), title: "Purple"),
         ColorCategory(color: Color(hex: "91ADC8"), title: "Teal")
     ]
@@ -59,8 +63,13 @@ struct BackgroundUI: View {
                         TextSwiftUI(title: categories[index].title, size: 14, color: .gray)
                     }
                     .onTapGesture {
-                        selectedIndex = index
-                        selectedBackground = categories[index].color
+                        if selectedIndex == index {
+                            selectedIndex = nil
+                            selectedBackground = .white
+                        } else {
+                            selectedIndex = index
+                            selectedBackground = categories[index].color
+                        }
                     }
                 }
             }

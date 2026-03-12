@@ -88,4 +88,43 @@ public class Utilize {
     static func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
+    
+    static func popToRootView(animated: Bool = false) {
+        guard let rootVC = UIApplication.shared.connectedScenes
+                .compactMap({ ($0 as? UIWindowScene)?.windows.first { $0.isKeyWindow }?.rootViewController })
+                .first else { return }
+
+            // Dismiss modals (fullScreenCover / sheet)
+            if let presented = rootVC.presentedViewController {
+                presented.dismiss(animated: animated) {
+                    findNavigationController(viewController: rootVC)?
+                        .popToRootViewController(animated: animated)
+                }
+                return
+            }
+            
+            // Normal navigation stack pop
+            findNavigationController(viewController: rootVC)?
+                .popToRootViewController(animated: animated)
+    }
+    
+    static private func findNavigationController(viewController: UIViewController?) -> UINavigationController? {
+        guard let viewController = viewController else {
+            return nil
+        }
+        
+        if let navigationController = viewController as? UITabBarController {
+            return findNavigationController(viewController: navigationController.selectedViewController)
+        }
+        
+        if let navigationController = viewController as? UINavigationController {
+            return navigationController
+        }
+        
+        for childViewController in viewController.children {
+            return findNavigationController(viewController: childViewController)
+        }
+        
+        return nil
+    }
 }

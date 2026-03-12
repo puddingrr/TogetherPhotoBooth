@@ -12,6 +12,7 @@ struct UploadPhotoView: View {
 
     @State var images: [UIImage?]
     
+    @Binding var isPresented: Bool
     var formCapture: Bool = false
     @State private var reCaptureSlotIndex: Int? = nil
     @State private var pickerSlotIndex: Int? = nil
@@ -30,7 +31,8 @@ struct UploadPhotoView: View {
                 // Header
                 HStack {
                     Button {
-                        dismiss()
+                        images = Array(repeating: nil, count: 4)
+                        isPresented = false
                     } label: {
                         Image(systemName: "arrow.backward")
                             .font(.system(size: 22, weight: .bold))
