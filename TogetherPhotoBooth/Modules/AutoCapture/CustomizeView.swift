@@ -253,37 +253,33 @@ extension CustomizeView {
     var exportView: some View {
         ZStack {
             selectedBackground
+            
             VStack(spacing: 12) {
                 ForEach(images.indices, id: \.self) { i in
+                    let imageWidth = UIScreen.main.bounds.width - 36
+
                     ZStack {
-                        // Full screen width minus the same horizontal padding
-                        let imageWidth = UIScreen.main.bounds.width - 24
                         Image(uiImage: images[i])
                             .resizable()
                             .scaledToFill()
                             .frame(width: imageWidth, height: imageHeight)
-                            .clipped()
-                            .cornerRadius(10)
-                        
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+
                         selectedFilter.opacity(0.1)
-                        
-                        // Stickers for this image
+
                         ForEach(selectedStickers.filter { $0.parentImageIndex == i }) { sticker in
                             Text(sticker.emoji)
                                 .font(.system(size: 40))
                                 .scaleEffect(sticker.scale)
                                 .rotationEffect(sticker.rotation)
-                                .position(
-                                    x: sticker.position.x - 8,       // match horizontal padding
-                                    y: sticker.position.y - 9   // vertical padding
-                                )
+                                .position(x: sticker.position.x, y: sticker.position.y)
                         }
+                        .padding(.leading, 32)
                     }
+                    .frame(width: imageWidth, height: imageHeight)
                 }
             }
-            .padding(12)
         }
-        .frame(width: UIScreen.main.bounds.width)
     }
     
     func removeAlpha(_ image: UIImage) -> UIImage {
