@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+struct ShareImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
+}
+
 struct CustomizeView: View {
     
     @State var images: [UIImage]
@@ -24,8 +29,7 @@ struct CustomizeView: View {
     @State private var selectedBackground: Color = .white
     @State private var selectedStickers: [StickerItem] = []
     @State private var selectedFilter: Color = .white
-    @State private var shareImage: UIImage?
-    @State private var showShare = false
+    @State private var shareImage: ShareImage?
     @State private var showSavedPopup = false
     
     let imageHeight: CGFloat = 400 // consistent height for preview and export
@@ -187,10 +191,13 @@ struct CustomizeView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .sheet(isPresented: $showShare) {
-            if let image = shareImage {
-                ShareSheet(activityItems: [image]) {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+        .sheet(item: $shareImage) { item in
+            ShareSheet(activityItems: [item.image]) {
+                DispatchQueue.main.async {
+                    showSavedPopup = true
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        showSavedPopup = false
                         Utilize.popToRootView(animated: true)
                     }
                 }
@@ -214,10 +221,12 @@ extension CustomizeView {
     
     // MARK: - Share Image
     func shareImageAction() {
-        if let image = renderImage() {
-            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-            shareImage = image
-            showShare = true
+        Task { @MainActor in
+            if let image = renderImage() {
+                shareImage = ShareImage(image: image)
+            } else {
+                print("Render failed")
+            }
         }
     }
     
