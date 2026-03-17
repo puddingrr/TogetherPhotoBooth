@@ -16,6 +16,8 @@ struct PhotoBootsView: View {
     @State private var selectedImages: [UIImage] = []
     @State private var isLoading = false
     @State private var fromPhotoView: Bool = false
+    @State private var selectedShotCount: Int = 4
+    @State private var showShotSelection = false
 
     var body: some View {
         ZStack {
@@ -27,7 +29,7 @@ struct PhotoBootsView: View {
                 
                 VStack(spacing: 24) {
                     Button {
-                        isNavTo4Shot = true
+                        showShotSelection = true
                     } label: {
                         VStack(spacing: 20) {
                             ZStack {
@@ -97,8 +99,22 @@ struct PhotoBootsView: View {
                 LoadingUI2()
             }
         }
+        .confirmationDialog("Choose number of shots 💕", isPresented: $showShotSelection, titleVisibility: .visible) {
+            
+            Button("2 Shots") {
+                selectedShotCount = 2
+                isNavTo4Shot = true
+            }
+            
+            Button("4 Shots") {
+                selectedShotCount = 4
+                isNavTo4Shot = true
+            }
+            
+            Button("Cancel", role: .cancel) { }
+        }
         .navigationDestination(isPresented: $isNavTo4Shot) {
-            AutoCapture4ShotView()
+            AutoCapture4ShotView(totalShots: selectedShotCount)
         }
         .sheet(isPresented: $showPicker, onDismiss: {
             if !selectedImages.isEmpty {

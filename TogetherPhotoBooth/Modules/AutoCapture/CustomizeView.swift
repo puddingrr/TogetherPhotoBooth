@@ -274,7 +274,7 @@ extension CustomizeView {
                                 .rotationEffect(sticker.rotation)
                                 .position(x: sticker.position.x, y: sticker.position.y)
                         }
-                        .padding(.leading, 32)
+                        .padding(.leading, 29)
                     }
                     .frame(width: imageWidth, height: imageHeight)
                 }

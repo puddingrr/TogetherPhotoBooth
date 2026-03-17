@@ -14,6 +14,7 @@ struct UploadPhotoView: View {
     
     @Binding var isPresented: Bool
     var formCapture: Bool = false
+    var totalShots: Int = 4
     @State private var reCaptureSlotIndex: Int? = nil
     @State private var pickerSlotIndex: Int? = nil
     @State private var showPicker: Bool = false
@@ -31,7 +32,7 @@ struct UploadPhotoView: View {
                 // Header
                 HStack {
                     Button {
-                        images = Array(repeating: nil, count: 4)
+                        images = Array(repeating: nil, count: totalShots)
                         isPresented = false
                     } label: {
                         Image(systemName: "arrow.backward")
@@ -48,7 +49,7 @@ struct UploadPhotoView: View {
 
                 // Image Grid
                 LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(0..<4, id: \.self) { i in
+                    ForEach(0..<totalShots, id: \.self) { i in
                         ZStack {
                             if let img = images[i] {
                                 Image(uiImage: img)
@@ -104,7 +105,7 @@ struct UploadPhotoView: View {
                 let selectedCount = images.compactMap { $0 }.count
                 Button {
                     let newImages = images.compactMap { $0 }
-                    if newImages.count == 4 {
+                    if newImages.count == totalShots {
                         isNavtoCustomize = true
                     } else {
                         Utilize.shared.showToast(message: "PhotoUpload is not enough")
@@ -112,10 +113,10 @@ struct UploadPhotoView: View {
                 } label: {
                     VStack(spacing: 4) {
                         TextSwiftUI(
-                            title: selectedCount < 4 ? "📸 Select \(4 - selectedCount) more photos" : "📸 Continue",
+                            title: selectedCount < 4 ? "📸 Select \(totalShots - selectedCount) more photos" : "📸 Continue",
                             size: 22, weight: .bold
                         )
-                        TextSwiftUI(title: "\(selectedCount)/4 photos selected", size: 14, color: .gray)
+                        TextSwiftUI(title: "\(selectedCount)/\(totalShots) photos selected", size: 14, color: .gray)
                     }
                     .padding(24)
                     .frame(maxWidth: .infinity)

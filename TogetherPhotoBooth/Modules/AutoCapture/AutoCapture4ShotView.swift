@@ -21,6 +21,7 @@ struct AutoCapture4ShotView: View {
     
     @State var formCature: Bool = true
     @State var retakeSlotIndex: Int? = nil
+    var totalShots: Int = 4
     
     @Environment(\.dismiss) private var dismiss
     
@@ -72,7 +73,7 @@ struct AutoCapture4ShotView: View {
                     HStack {
                         Spacer()
                         VStack(spacing: 10) {
-                            ForEach(0..<4, id: \.self) { index in
+                            ForEach(0..<totalShots, id: \.self) { index in
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 10)
                                         .stroke(Color.white.opacity(0.6),
@@ -181,6 +182,8 @@ struct AutoCapture4ShotView: View {
         .ignoresSafeArea()
         .navigationBarBackButtonHidden(true)
         .onAppear {
+            camera.capturedImage = nil
+            camera.capturedImages.removeAll()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 camera.checkCameraPermissionAndStart()
             }
@@ -190,7 +193,12 @@ struct AutoCapture4ShotView: View {
         }
         .navigationDestination(isPresented: $isNavUploadPhoto) {
             if !camera.capturedImages.isEmpty {
-                UploadPhotoView(images: camera.capturedImages, isPresented: $isNavUploadPhoto, formCapture: true) { index in
+                UploadPhotoView(
+                    images: camera.capturedImages + Array(repeating: nil, count: totalShots - camera.capturedImages.count),
+                    isPresented: $isNavUploadPhoto,
+                    formCapture: true,
+                    totalShots: totalShots
+                ) { index in
                     retakeSlotIndex = index
                     startReCapture()
                 }
@@ -241,8 +249,8 @@ extension AutoCapture4ShotView {
                     if let img = camera.capturedImage {
                         camera.capturedImages.append(img)
                     }
-                    
-                    if camera.capturedImages.count < 4 {
+                    let maxShots = totalShots
+                    if camera.capturedImages.count < maxShots {
                         startCountdown()
                     } else {
                         isCapturing = false
