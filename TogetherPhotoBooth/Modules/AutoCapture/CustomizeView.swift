@@ -6,10 +6,20 @@
 //
 
 import SwiftUI
+import Foundation
 
 struct ShareImage: Identifiable {
     let id = UUID()
     let image: UIImage
+}
+
+struct DraftData: Codable {
+    let images: [Data]
+    let previewImage: Data?
+    let backgroundHex: String
+    let filterHex: String
+    let stickers: [StickerItem]
+    let savedAt: Date
 }
 
 struct CustomizeView: View {
@@ -133,7 +143,9 @@ struct CustomizeView: View {
                 .padding(EdgeInsets(top: 18, leading: 18, bottom: 0, trailing: 18))
                 
                 // Bottom Buttons
+                // Bottom Buttons
                 HStack {
+                    // Share Button
                     Button {
                         shareImageAction()
                     } label: {
@@ -151,8 +163,14 @@ struct CustomizeView: View {
                         .cornerRadius(12)
                     }
                     
-                    Button {
-                        saveImage()
+                    // Save Options Button
+                    Menu {
+                        Button("Save to Photos") {
+                            saveImage()
+                        }
+                        Button("Save Draft") {
+                            saveDraft()
+                        }
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "square.and.arrow.down.on.square.fill")
@@ -189,6 +207,9 @@ struct CustomizeView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+        }
+        .onAppear {
+            loadDraft()
         }
         .navigationBarBackButtonHidden(true)
         .sheet(item: $shareImage) { item in
@@ -293,6 +314,43 @@ extension CustomizeView {
             UIBezierPath(rect: CGRect(origin: .zero, size: image.size)).fill()
             image.draw(at: .zero)
         }
+    }
+    func saveDraft() {
+        let imageData = images.compactMap { $0.pngData() }
+        let previewData = renderImage()?.pngData()
+
+        let draft = DraftData(
+            images: imageData,
+            previewImage: previewData,
+            backgroundHex: selectedBackground.toHexString(),
+            filterHex: selectedFilter.toHexString(),
+            stickers: selectedStickers,
+            savedAt: Date()
+        )
+
+        if let encoded = try? JSONEncoder().encode(draft) {
+            UserDefaults.standard.set(encoded, forKey: "draft_data")
+            showSavedPopup = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                showSavedPopup = false
+            }
+        }
+    }
+    
+    func loadDraft() {
+        guard let data = UserDefaults.standard.data(forKey: "draft_data"),
+              let draft = try? JSONDecoder().decode(DraftData.self, from: data) else { return }
+        
+        let now = Date()
+        if now.timeIntervalSince(draft.savedAt) > 86400 {
+            UserDefaults.standard.removeObject(forKey: "draft_data")
+            return
+        }
+        
+        images = draft.images.compactMap { UIImage(data: $0) }
+        selectedBackground = Color(hex: draft.backgroundHex)
+        selectedFilter = Color(hex: draft.filterHex)
+        selectedStickers = draft.stickers
     }
 }
 

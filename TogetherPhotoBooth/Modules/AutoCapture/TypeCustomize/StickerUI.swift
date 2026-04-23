@@ -12,13 +12,29 @@ struct StickerCategory {
     let stickers: [String]
 }
 
-struct StickerItem: Identifiable {
-    let id = UUID()
+struct StickerItem: Identifiable, Codable {
+    var id: UUID = UUID()
     var emoji: String
     var parentImageIndex: Int? = nil
-    var position: CGPoint
+    var x: CGFloat
+    var y: CGFloat
     var scale: CGFloat = 1.0
-    var rotation: Angle = .zero
+    var rotationDegrees: Double = 0.0  // store as Double for Codable
+
+    // Computed property to use in SwiftUI
+    var rotation: Angle {
+        get { Angle(degrees: rotationDegrees) }
+        set { rotationDegrees = newValue.degrees }
+    }
+
+    // Computed property to use CGPoint in UI if needed
+    var position: CGPoint {
+        get { CGPoint(x: x, y: y) }
+        set {
+            x = newValue.x
+            y = newValue.y
+        }
+    }
 }
 
 struct StickerUI: View {
@@ -76,7 +92,8 @@ struct StickerUI: View {
                                             let newSticker = StickerItem(
                                                 emoji: img,
                                                 parentImageIndex: currentVisibleImageIndex,
-                                                position: CGPoint(x: 200, y: 200)
+                                                x: 200,
+                                                y: 200
                                             )
                                             
                                             selectedStickers.append(newSticker)
@@ -93,9 +110,10 @@ struct StickerUI: View {
     func addSticker(_ emoji: String) {
         let newSticker = StickerItem(
             emoji: emoji,
-            parentImageIndex: currentVisibleImageIndex, position: CGPoint(x: 200, y: 200), // center of 400 height image
+            parentImageIndex: currentVisibleImageIndex,  x: 200,
+            y: 200, // center of 400 height image
             scale: 1.0,
-            rotation: .zero
+            rotationDegrees: 0
         )
 
         selectedStickers.append(newSticker)
