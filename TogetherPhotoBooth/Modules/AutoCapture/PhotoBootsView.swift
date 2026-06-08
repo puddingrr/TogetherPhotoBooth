@@ -23,7 +23,7 @@ struct PhotoBootsView: View {
     var body: some View {
         ZStack {
             VStack(spacing: 16) {
-                TextSwiftUI(title: "📸 Together x Booth", size: 36, weight: .bold)
+                TextSwiftUI(title: "📸 Together x Booth", size: 36, color: .pinkUI, weight: .bold)
                 TextSwiftUI(title: "Create cute collage!!", size: 14, color: .gray)
                 
                 Spacer(minLength: 0)

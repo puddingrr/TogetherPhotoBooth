@@ -58,12 +58,14 @@ struct AutoCapture4ShotView: View {
                                     .background(Circle().fill(Color.black.opacity(0.4)))
                             }
                         }
+                        .padding(.top, 16)
                         .overlay {
                             TextSwiftUI(title: "Ready to Capture!", color: .white, weight: .bold)
                                 .padding(.vertical, 8)
                                 .padding(.horizontal, 16)
                                 .background(Color.black.opacity(0.4))
                                 .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .padding(.top, 16)
                         }
                     }
                     

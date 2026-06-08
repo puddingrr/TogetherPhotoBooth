@@ -9,33 +9,109 @@ import SwiftUI
 
 struct ProfileView: View {
     
+    @State private var isNavEditProfile: Bool = false
     @State private var showDrafts = false
     @State private var loadedDraft: DraftData? = nil
     @State private var draftImages: [UIImage] = []
-    
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
+    let images: [ImageResource] = [.profile, .profile, .profile, .profile, .profile, .profile, .profile,
+                                   .profile, .profile, .profile, .profile, .profile, .profile, .profile, .profile]
     var body: some View {
         VStack {
-            Button {
-                loadDraft()
-                showDrafts = true
-            } label: {
-                TextSwiftUI(title: "View Drafts", size: 14, color: .gray)
-                    .padding(12)
+            ZStack(alignment: .bottomLeading) {
+                Image(.cover)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 180)
                     .frame(maxWidth: .infinity)
-                    .cornerRadius(5)
+                    .cornerRadius(12)
+                
+                Image(.profile)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 100, height: 100)
+                    .clipShape(Circle())
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color(hex: "FFB399"), lineWidth: 2)
+                        Circle().stroke(Color.pinkUI, lineWidth: 3)
                     )
+                    .padding(.leading, 16)
+                    .offset(y: 35)
             }
+            .padding(.bottom, 35)
+            
+            VStack(alignment: .leading, spacing: 16) {
+                TextSwiftUI(title: "Sensitive about everything", size: 14)
+                HStack(spacing: 8) {
+                    Button {
+                        isNavEditProfile = true
+                    } label: {
+                        TextSwiftUI(title: "Edit Profile", size: 14, color: .pinkUI)
+                            .padding(10)
+                            .frame(maxWidth: .infinity)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.pinkUI, lineWidth: 2)
+                            )
+                    }
+
+                    Button {
+                        loadDraft()
+                        showDrafts = true
+                    } label: {
+                        TextSwiftUI(title: "View Drafts", size: 14, color: .pinkUI)
+                            .padding(10)
+                            .frame(maxWidth: .infinity)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.pinkUI, lineWidth: 2)
+                            )
+                    }
+
+                    Button {
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .resizable()
+                            .frame(width: 14, height: 14)
+                            .padding(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.pinkUI, lineWidth: 2)
+                            )
+                    }
+                }
+                TextSwiftUI(title: "Saved Photo ideas", size: 18, color: .gray, weight: .bold)
+                
+                ScrollView(showsIndicators: false) {
+                    LazyVGrid(columns: columns, spacing: 6) {
+                        ForEach(images.indices, id: \.self) { i in
+                            Image(images[i])
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 120)
+                                .frame(maxWidth: .infinity)
+                                .clipped()
+                                .cornerRadius(10)
+                                .background(.pinkUI)
+                        }
+                    }
+                }
+            }
+            .padding(16)
+            Spacer()
         }
-        .padding(16)
-        .navigationTitle("Profile")
+        .ignoresSafeArea()
         .onAppear {
             loadDraft()
         }
         .sheet(isPresented: $showDrafts) {
                 DraftsView(draft: $loadedDraft, images: $draftImages)
+        }
+        .navigationDestination(isPresented: $isNavEditProfile) {
+            EditProfileView()
         }
     }
 }
